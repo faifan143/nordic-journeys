@@ -145,6 +145,20 @@
     @apply bg-card rounded-[24px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-8 transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)];
   }
 
+  /* Compact premium card for admin pages */
+  .premium-card.compact {
+    @apply p-6;
+  }
+
+  /* Admin page specific styles */
+  .admin-page h1 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  .admin-page h2 {
+    @apply text-xl md:text-2xl;
+  }
+
   /* Hero section gradient */
   .hero-gradient {
     @apply bg-gradient-to-br from-[hsl(var(--background-start))] to-[hsl(var(--background-end))];

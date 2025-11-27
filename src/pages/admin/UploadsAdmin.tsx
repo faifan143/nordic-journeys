@@ -58,14 +58,14 @@ export default function UploadsAdmin() {
 
   return (
     <AdminLayout>
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="mb-2">Upload Files</h1>
-        <p className="text-muted-foreground text-lg">
+        <p className="text-muted-foreground">
           Upload images to Backblaze via backend
         </p>
       </div>
 
-      <div className="premium-card max-w-2xl">
+      <div className="premium-card compact max-w-2xl">
         <div className="space-y-6">
           <div>
             <Label htmlFor="file">Select File</Label>

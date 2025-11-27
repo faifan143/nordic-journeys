@@ -25,8 +25,8 @@ export function RecentlyAddedPlaces() {
 
   if (isLoading) {
     return (
-      <div className="premium-card">
-        <h2 className="text-2xl font-bold mb-6">Recently Added Places</h2>
+      <div className="premium-card compact">
+        <h2 className="text-xl font-bold mb-4">Recently Added Places</h2>
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-4 animate-pulse">
@@ -44,25 +44,25 @@ export function RecentlyAddedPlaces() {
 
   if (recentlyAdded.length === 0) {
     return (
-      <div className="premium-card">
-        <h2 className="text-2xl font-bold mb-6">Recently Added Places</h2>
-        <p className="text-muted-foreground">No places added yet.</p>
+      <div className="premium-card compact">
+        <h2 className="text-xl font-bold mb-4">Recently Added Places</h2>
+        <p className="text-muted-foreground text-sm">No places added yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="premium-card">
-      <h2 className="text-2xl font-bold mb-6">Recently Added Places</h2>
-      <div className="space-y-4">
+    <div className="premium-card compact">
+      <h2 className="text-xl font-bold mb-4">Recently Added Places</h2>
+      <div className="space-y-3">
         {recentlyAdded.map((place, index) => (
           <div
             key={place.id}
-            className={`flex items-center gap-4 pb-4 ${
+            className={`flex items-center gap-3 pb-3 ${
               index < recentlyAdded.length - 1 ? 'border-b border-border' : ''
             }`}
           >
-            <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-muted">
+            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
               {place.images && place.images.length > 0 ? (
                 <img
                   src={place.images[0]}
@@ -79,12 +79,12 @@ export function RecentlyAddedPlaces() {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate">{place.name}</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="font-semibold text-base truncate">{place.name}</h3>
+              <p className="text-xs text-muted-foreground">
                 {place.city?.name || 'Unknown City'}
               </p>
             </div>
-            <div className="text-sm text-muted-foreground whitespace-nowrap">
+            <div className="text-xs text-muted-foreground whitespace-nowrap">
               {formatDate(place.createdAt)}
             </div>
           </div>

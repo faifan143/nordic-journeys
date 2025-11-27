@@ -70,7 +70,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
-        <div className="container mx-auto p-8">
+        <div className="container mx-auto p-6 admin-page">
           {children}
         </div>
       </main>

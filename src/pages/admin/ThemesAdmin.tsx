@@ -79,10 +79,10 @@ export default function ThemesAdmin() {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="mb-2">Themes</h1>
-          <p className="text-muted-foreground text-lg">Manage place themes</p>
+          <p className="text-muted-foreground">Manage place themes</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -125,12 +125,12 @@ export default function ThemesAdmin() {
       </div>
 
       {isLoading ? (
-        <div className="premium-card">
+        <div className="premium-card compact">
           <p className="text-center text-muted-foreground">Loading...</p>
         </div>
       ) : (
         <>
-          <div className="premium-card">
+          <div className="premium-card compact">
             <div className="flex flex-wrap gap-3">
               {paginatedThemes.map((theme) => (
                 <Badge

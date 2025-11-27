@@ -45,18 +45,18 @@ export function QuickActions() {
   const navigate = useNavigate();
 
   return (
-    <div className="premium-card">
-      <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="premium-card compact">
+      <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {actions.map((action) => {
           const Icon = action.icon;
           return (
             <Button
               key={action.path}
               onClick={() => navigate(action.path)}
-              className={`${action.color} text-white rounded-full px-6 py-6 h-auto shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}
+              className={`${action.color} text-white rounded-full px-4 py-3 h-auto shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-sm`}
             >
-              <Icon className="w-5 h-5 mr-2" />
+              <Icon className="w-4 h-4 mr-2" />
               <span className="font-medium">{action.label}</span>
             </Button>
           );

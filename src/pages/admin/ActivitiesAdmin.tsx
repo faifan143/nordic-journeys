@@ -134,10 +134,10 @@ export default function ActivitiesAdmin() {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="mb-2">Activities</h1>
-          <p className="text-muted-foreground text-lg">Manage all activities</p>
+          <p className="text-muted-foreground">Manage all activities</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -220,7 +220,7 @@ export default function ActivitiesAdmin() {
           <p className="text-center text-muted-foreground">Loading...</p>
         </div>
       ) : (
-        <div className="premium-card overflow-hidden p-0">
+        <div className="premium-card compact overflow-hidden p-0">
           <Table>
             <TableHeader>
               <TableRow>

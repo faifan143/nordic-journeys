@@ -31,8 +31,8 @@ export function TopPopularPlaces() {
 
   if (isLoading) {
     return (
-      <div className="premium-card bg-gradient-to-br from-[#CFE4F4] to-[#E8EEF2]">
-        <h2 className="text-2xl font-bold mb-6">Top Popular Places</h2>
+      <div className="premium-card compact bg-gradient-to-br from-[#CFE4F4] to-[#E8EEF2]">
+        <h2 className="text-xl font-bold mb-4">Top Popular Places</h2>
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-4 animate-pulse">
@@ -50,32 +50,32 @@ export function TopPopularPlaces() {
 
   if (topPopular.length === 0) {
     return (
-      <div className="premium-card bg-gradient-to-br from-[#CFE4F4] to-[#E8EEF2]">
-        <h2 className="text-2xl font-bold mb-6">Top Popular Places</h2>
-        <p className="text-muted-foreground">No places available yet.</p>
+      <div className="premium-card compact bg-gradient-to-br from-[#CFE4F4] to-[#E8EEF2]">
+        <h2 className="text-xl font-bold mb-4">Top Popular Places</h2>
+        <p className="text-muted-foreground text-sm">No places available yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="premium-card bg-gradient-to-br from-[#CFE4F4] to-[#E8EEF2]">
-      <h2 className="text-2xl font-bold mb-6">Top Popular Places</h2>
-      <div className="space-y-4">
+    <div className="premium-card compact bg-gradient-to-br from-[#CFE4F4] to-[#E8EEF2]">
+      <h2 className="text-xl font-bold mb-4">Top Popular Places</h2>
+      <div className="space-y-3">
         {topPopular.map(({ place, popularity }, index) => (
           <div
             key={place.id}
-            className="flex items-center gap-4 p-3 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-white/70 transition-colors"
+            className="flex items-center gap-3 p-2.5 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/70 transition-colors"
           >
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg shadow-md">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-md">
               {index + 1}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate">{place.name}</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="font-semibold text-base truncate">{place.name}</h3>
+              <p className="text-xs text-muted-foreground">
                 {place.city?.name || 'Unknown City'}
               </p>
             </div>
-            <Badge variant="secondary" className="font-semibold">
+            <Badge variant="secondary" className="font-semibold text-xs">
               {popularity} pts
             </Badge>
           </div>

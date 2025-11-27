@@ -136,10 +136,10 @@ export default function CitiesAdmin() {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="mb-2">Cities</h1>
-          <p className="text-muted-foreground text-lg">Manage all cities</p>
+          <p className="text-muted-foreground">Manage all cities</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -227,7 +227,7 @@ export default function CitiesAdmin() {
           <p className="text-center text-muted-foreground">Loading...</p>
         </div>
       ) : (
-        <div className="premium-card overflow-hidden p-0">
+        <div className="premium-card compact overflow-hidden p-0">
           <Table>
             <TableHeader>
               <TableRow>
