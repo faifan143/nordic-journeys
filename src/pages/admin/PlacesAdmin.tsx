@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +46,8 @@ import { toast } from 'sonner';
 export default function PlacesAdmin() {
   const [open, setOpen] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -100,7 +102,7 @@ export default function PlacesAdmin() {
       categoryIds: string[];
       themeIds: string[];
     }) => {
-      const place = await placesApi.create(placeData);
+      const place = await placesApi.create(placeData, imageFiles.length > 0 ? imageFiles : undefined);
       // Update categories and themes if selected
       if (categoryIds.length > 0) {
         await placesApi.updateCategories(place.id, categoryIds);
@@ -130,7 +132,7 @@ export default function PlacesAdmin() {
       categoryIds: string[];
       themeIds: string[];
     }) => {
-      const place = await placesApi.update(id, placeData);
+      const place = await placesApi.update(id, placeData, imageFiles.length > 0 ? imageFiles : undefined);
       // Update categories and themes
       if (categoryIds.length > 0) {
         await placesApi.updateCategories(id, categoryIds);
@@ -160,6 +162,8 @@ export default function PlacesAdmin() {
   const handleClose = () => {
     setOpen(false);
     setEditingPlace(null);
+    setImageFiles([]);
+    setImagePreviews([]);
     setFormData({
       name: '',
       description: '',
@@ -171,6 +175,8 @@ export default function PlacesAdmin() {
 
   const handleEdit = (place: Place) => {
     setEditingPlace(place);
+    setImageFiles([]);
+    setImagePreviews(place.images || []);
     setFormData({
       name: place.name,
       description: place.description,
@@ -179,6 +185,30 @@ export default function PlacesAdmin() {
       themeIds: place.themes?.map((t) => t.id) || [],
     });
     setOpen(true);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      const remainingSlots = 10 - imageFiles.length;
+      const filesToAdd = files.slice(0, remainingSlots);
+      if (files.length > remainingSlots) {
+        toast.warning(`Only ${remainingSlots} more image(s) can be added (max 10 total)`);
+      }
+      setImageFiles((prev) => [...prev, ...filesToAdd]);
+      filesToAdd.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews((prev) => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -320,6 +350,53 @@ export default function PlacesAdmin() {
                     </Badge>
                   ))}
                 </div>
+              </div>
+              <div>
+                <Label htmlFor="images">Images (optional, max 10)</Label>
+                <Input
+                  id="images"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageChange}
+                  className="mt-2"
+                  disabled={imageFiles.length >= 10}
+                />
+                {imageFiles.length >= 10 && (
+                  <p className="text-xs text-muted-foreground mt-1">Maximum 10 images allowed</p>
+                )}
+                {(imagePreviews.length > 0 || (editingPlace && editingPlace.images && editingPlace.images.length > 0)) && (
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={`preview-${index}`} className="relative">
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          className="w-24 h-24 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {editingPlace && editingPlace.images && editingPlace.images.length > 0 && imageFiles.length === 0 && (
+                      editingPlace.images.map((img, index) => (
+                        <div key={`existing-${index}`} className="relative">
+                          <img
+                            src={img}
+                            alt={`Current ${index + 1}`}
+                            className="w-24 h-24 object-cover rounded-lg border"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1 text-center">Current</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 pt-4">
                 <Button

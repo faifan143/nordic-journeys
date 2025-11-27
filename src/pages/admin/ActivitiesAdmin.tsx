@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,8 @@ import { toast } from 'sonner';
 export default function ActivitiesAdmin() {
   const [open, setOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -78,7 +80,9 @@ export default function ActivitiesAdmin() {
   });
 
   const createMutation = useMutation({
-    mutationFn: activitiesApi.create,
+    mutationFn: async (data: any) => {
+      return activitiesApi.create(data, imageFile || undefined);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       toast.success('Activity created successfully');
@@ -88,8 +92,9 @@ export default function ActivitiesAdmin() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
-      activitiesApi.update(id, data),
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return activitiesApi.update(id, data, imageFile || undefined);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       toast.success('Activity updated successfully');
@@ -110,17 +115,33 @@ export default function ActivitiesAdmin() {
   const handleClose = () => {
     setOpen(false);
     setEditingActivity(null);
+    setImageFile(null);
+    setImagePreview(null);
     setFormData({ name: '', description: '', placeId: '' });
   };
 
   const handleEdit = (activity: Activity) => {
     setEditingActivity(activity);
+    setImageFile(null);
+    setImagePreview(null); // Activities don't have imageUrl in the type, but handle if backend returns it
     setFormData({
       name: activity.name,
       description: activity.description,
       placeId: activity.placeId,
     });
     setOpen(true);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -196,6 +217,35 @@ export default function ActivitiesAdmin() {
                   rows={4}
                   required
                 />
+              </div>
+              <div>
+                <Label htmlFor="image">Image (optional)</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="mt-2"
+                />
+                {imagePreview && (
+                  <div className="mt-3 relative inline-block">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-32 h-32 object-cover rounded-lg border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageFile(null);
+                        setImagePreview(null);
+                      }}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 pt-4">
                 <Button

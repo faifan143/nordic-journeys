@@ -46,6 +46,18 @@ export const authApi = {
   },
 };
 
+// STORAGE
+export const storageApi = {
+  upload: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/storage/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+};
+
 // COUNTRIES
 export const countriesApi = {
   getAll: async () => {
@@ -56,12 +68,34 @@ export const countriesApi = {
     const response = await api.get(`/countries/${id}`);
     return response.data;
   },
-  create: async (data: any) => {
-    const response = await api.post('/countries', data);
+  create: async (data: any, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+    if (data.imageUrl) {
+      formData.append('imageUrl', data.imageUrl);
+    }
+    const response = await api.post('/countries', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
-  update: async (id: string, data: any) => {
-    const response = await api.put(`/countries/${id}`, data);
+  update: async (id: string, data: any, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+    if (data.imageUrl) {
+      formData.append('imageUrl', data.imageUrl);
+    }
+    const response = await api.put(`/countries/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
   delete: async (id: string) => {
@@ -81,12 +115,36 @@ export const citiesApi = {
     const response = await api.get(`/cities/${id}`);
     return response.data;
   },
-  create: async (data: any) => {
-    const response = await api.post('/cities', data);
+  create: async (data: any, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    formData.append('countryId', data.countryId);
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+    if (data.imageUrl) {
+      formData.append('imageUrl', data.imageUrl);
+    }
+    const response = await api.post('/cities', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
-  update: async (id: string, data: any) => {
-    const response = await api.put(`/cities/${id}`, data);
+  update: async (id: string, data: any, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    formData.append('countryId', data.countryId);
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+    if (data.imageUrl) {
+      formData.append('imageUrl', data.imageUrl);
+    }
+    const response = await api.put(`/cities/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
   delete: async (id: string) => {
@@ -138,12 +196,44 @@ export const placesApi = {
     const response = await api.get(`/places/${id}`);
     return response.data;
   },
-  create: async (data: any) => {
-    const response = await api.post('/places', data);
+  create: async (data: any, imageFiles?: File[]) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    formData.append('cityId', data.cityId);
+    if (imageFiles && imageFiles.length > 0) {
+      imageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+    }
+    if (data.imageUrls && Array.isArray(data.imageUrls)) {
+      data.imageUrls.forEach((url: string) => {
+        formData.append('imageUrls', url);
+      });
+    }
+    const response = await api.post('/places', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
-  update: async (id: string, data: any) => {
-    const response = await api.put(`/places/${id}`, data);
+  update: async (id: string, data: any, imageFiles?: File[]) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    formData.append('cityId', data.cityId);
+    if (imageFiles && imageFiles.length > 0) {
+      imageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+    }
+    if (data.imageUrls && Array.isArray(data.imageUrls)) {
+      data.imageUrls.forEach((url: string) => {
+        formData.append('imageUrls', url);
+      });
+    }
+    const response = await api.put(`/places/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
   delete: async (id: string) => {
@@ -183,12 +273,36 @@ export const activitiesApi = {
     const response = await api.get(`/activities/${id}`);
     return response.data;
   },
-  create: async (data: any) => {
-    const response = await api.post('/activities', data);
+  create: async (data: any, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    formData.append('placeId', data.placeId);
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+    if (data.imageUrl) {
+      formData.append('imageUrl', data.imageUrl);
+    }
+    const response = await api.post('/activities', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
-  update: async (id: string, data: any) => {
-    const response = await api.put(`/activities/${id}`, data);
+  update: async (id: string, data: any, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    formData.append('placeId', data.placeId);
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+    if (data.imageUrl) {
+      formData.append('imageUrl', data.imageUrl);
+    }
+    const response = await api.put(`/activities/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
   delete: async (id: string) => {

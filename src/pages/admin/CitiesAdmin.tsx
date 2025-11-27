@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,8 @@ import { toast } from 'sonner';
 export default function CitiesAdmin() {
   const [open, setOpen] = useState(false);
   const [editingCity, setEditingCity] = useState<City | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -79,7 +81,9 @@ export default function CitiesAdmin() {
   });
 
   const createMutation = useMutation({
-    mutationFn: citiesApi.create,
+    mutationFn: async (data: any) => {
+      return citiesApi.create(data, imageFile || undefined);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cities'] });
       toast.success('City created successfully');
@@ -89,8 +93,9 @@ export default function CitiesAdmin() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
-      citiesApi.update(id, data),
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return citiesApi.update(id, data, imageFile || undefined);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cities'] });
       toast.success('City updated successfully');
@@ -111,11 +116,15 @@ export default function CitiesAdmin() {
   const handleClose = () => {
     setOpen(false);
     setEditingCity(null);
+    setImageFile(null);
+    setImagePreview(null);
     setFormData({ name: '', description: '', countryId: '', imageUrl: '' });
   };
 
   const handleEdit = (city: City) => {
     setEditingCity(city);
+    setImageFile(null);
+    setImagePreview(city.imageUrl || null);
     setFormData({
       name: city.name,
       description: city.description,
@@ -123,6 +132,18 @@ export default function CitiesAdmin() {
       imageUrl: city.imageUrl || '',
     });
     setOpen(true);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -200,14 +221,43 @@ export default function CitiesAdmin() {
                 />
               </div>
               <div>
-                <Label htmlFor="imageUrl">Image URL (optional)</Label>
+                <Label htmlFor="image">Image (optional)</Label>
                 <Input
-                  id="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, imageUrl: e.target.value })
-                  }
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="mt-2"
                 />
+                {imagePreview && (
+                  <div className="mt-3 relative inline-block">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-32 h-32 object-cover rounded-lg border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageFile(null);
+                        setImagePreview(null);
+                      }}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                {!imagePreview && editingCity?.imageUrl && (
+                  <div className="mt-3 relative inline-block">
+                    <img
+                      src={editingCity.imageUrl}
+                      alt="Current"
+                      className="w-32 h-32 object-cover rounded-lg border"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Current image</p>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={handleClose} className="flex-1">

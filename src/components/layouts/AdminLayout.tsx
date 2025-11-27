@@ -25,16 +25,16 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border flex flex-col">
-        <div className="p-6 border-b border-border">
+      {/* Sidebar - Fixed */}
+      <aside className="fixed left-0 top-0 h-screen w-64 bg-card border-r border-border flex flex-col z-10">
+        <div className="p-6 border-b border-border flex-shrink-0">
           <Link to="/" className="flex items-center gap-2 group">
             <MapPin className="w-8 h-8 text-primary" />
             <span className="text-xl font-bold">Admin Panel</span>
           </Link>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -56,7 +56,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border flex-shrink-0">
           <div className="mb-3 px-4">
             <p className="text-sm text-muted-foreground">Logged in as</p>
             <p className="text-sm font-medium text-foreground truncate">{user?.email}</p>
@@ -68,8 +68,8 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      {/* Main Content - Offset for fixed sidebar */}
+      <main className="flex-1 ml-64 overflow-auto">
         <div className="container mx-auto p-6 admin-page">
           {children}
         </div>
