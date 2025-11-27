@@ -17,11 +17,16 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
+        background: {
+          DEFAULT: "hsl(var(--background))",
+          start: "hsl(var(--background-start))",
+          end: "hsl(var(--background-end))",
+        },
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -45,6 +50,7 @@ export default {
         },
         card: {
           DEFAULT: "hsl(var(--card))",
+          secondary: "hsl(var(--card-secondary))",
           foreground: "hsl(var(--card-foreground))",
         },
         sidebar: {
