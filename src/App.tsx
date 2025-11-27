@@ -20,6 +20,8 @@ import LoginPage from './pages/auth/LoginPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CountriesAdmin from './pages/admin/CountriesAdmin';
 import CitiesAdmin from './pages/admin/CitiesAdmin';
+import PlacesAdmin from './pages/admin/PlacesAdmin';
+import ActivitiesAdmin from './pages/admin/ActivitiesAdmin';
 import CategoriesAdmin from './pages/admin/CategoriesAdmin';
 import ThemesAdmin from './pages/admin/ThemesAdmin';
 import UploadsAdmin from './pages/admin/UploadsAdmin';
@@ -72,6 +74,22 @@ const App = () => {
               element={
                 <ProtectedRoute requireAdmin>
                   <CitiesAdmin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/places"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <PlacesAdmin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/activities"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <ActivitiesAdmin />
                 </ProtectedRoute>
               }
             />

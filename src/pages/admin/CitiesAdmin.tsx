@@ -28,6 +28,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { usePagination } from '@/hooks/use-pagination';
 import { citiesApi, countriesApi } from '@/lib/api';
 import { City, Country } from '@/types';
 import { toast } from 'sonner';
@@ -48,6 +58,20 @@ export default function CitiesAdmin() {
     queryKey: ['cities'],
     queryFn: () => citiesApi.getAll(),
   });
+
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems: paginatedCities,
+    nextPage,
+    previousPage,
+    goToPage,
+    hasNextPage,
+    hasPreviousPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination(cities || [], 10);
 
   const { data: countries } = useQuery<Country[]>({
     queryKey: ['countries'],
@@ -214,7 +238,7 @@ export default function CitiesAdmin() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {cities?.map((city) => (
+              {paginatedCities.map((city) => (
                 <TableRow key={city.id}>
                   <TableCell className="font-medium">{city.name}</TableCell>
                   <TableCell>{city.country?.name || 'N/A'}</TableCell>
@@ -243,6 +267,55 @@ export default function CitiesAdmin() {
               ))}
             </TableBody>
           </Table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1} to {endIndex} of {totalItems} cities
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={previousPage}
+                      className={!hasPreviousPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => goToPage(page)}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  })}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={nextPage}
+                      className={!hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </div>
       )}
     </AdminLayout>

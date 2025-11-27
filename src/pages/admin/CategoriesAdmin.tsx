@@ -12,7 +12,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Badge } from '@/components/ui/badge';
+import { usePagination } from '@/hooks/use-pagination';
 import { categoriesApi } from '@/lib/api';
 import { Category } from '@/types';
 import { toast } from 'sonner';
@@ -27,6 +37,20 @@ export default function CategoriesAdmin() {
     queryKey: ['categories'],
     queryFn: categoriesApi.getAll,
   });
+
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems: paginatedCategories,
+    nextPage,
+    previousPage,
+    goToPage,
+    hasNextPage,
+    hasPreviousPage,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination(categories || [], 20);
 
   const createMutation = useMutation({
     mutationFn: categoriesApi.create,
@@ -105,25 +129,76 @@ export default function CategoriesAdmin() {
           <p className="text-center text-muted-foreground">Loading...</p>
         </div>
       ) : (
-        <div className="premium-card">
-          <div className="flex flex-wrap gap-3">
-            {categories?.map((category) => (
-              <Badge
-                key={category.id}
-                variant="secondary"
-                className="text-base px-4 py-2 flex items-center gap-2"
-              >
-                <span>{category.name}</span>
-                <button
-                  onClick={() => deleteMutation.mutate(category.id)}
-                  className="ml-1 hover:text-destructive transition-colors"
+        <>
+          <div className="premium-card">
+            <div className="flex flex-wrap gap-3">
+              {paginatedCategories.map((category) => (
+                <Badge
+                  key={category.id}
+                  variant="secondary"
+                  className="text-base px-4 py-2 flex items-center gap-2"
                 >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </Badge>
-            ))}
+                  <span>{category.name}</span>
+                  <button
+                    onClick={() => deleteMutation.mutate(category.id)}
+                    className="ml-1 hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1} to {endIndex} of {totalItems} categories
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={previousPage}
+                      className={!hasPreviousPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => goToPage(page)}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  })}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={nextPage}
+                      className={!hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </>
       )}
     </AdminLayout>
   );
