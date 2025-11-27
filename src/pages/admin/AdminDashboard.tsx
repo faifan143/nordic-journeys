@@ -2,6 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Globe, Building2, MapPinned, Zap } from 'lucide-react';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { countriesApi, citiesApi, placesApi, activitiesApi } from '@/lib/api';
+import { QuickActions } from '@/components/admin/dashboard/QuickActions';
+import { RecentlyAddedPlaces } from '@/components/admin/dashboard/RecentlyAddedPlaces';
+import { TopPopularPlaces } from '@/components/admin/dashboard/TopPopularPlaces';
 
 export default function AdminDashboard() {
   const { data: countries } = useQuery({
@@ -77,12 +80,16 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      <div className="mt-12 premium-card">
-        <h2 className="text-2xl mb-4">Quick Actions</h2>
-        <p className="text-muted-foreground">
-          Use the sidebar to manage countries, cities, places, activities, categories, and themes.
-          Upload images through the Uploads section.
-        </p>
+      <div className="mt-10">
+        <QuickActions />
+      </div>
+
+      <div className="mt-10">
+        <RecentlyAddedPlaces />
+      </div>
+
+      <div className="mt-10">
+        <TopPopularPlaces />
       </div>
     </AdminLayout>
   );
