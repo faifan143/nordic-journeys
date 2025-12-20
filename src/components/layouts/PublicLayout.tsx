@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, LogIn } from 'lucide-react';
+import { MapPin, LogIn, Plane, Hotel } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 
@@ -24,6 +24,14 @@ export const PublicLayout = ({ children }: PublicLayoutProps) => {
             <nav className="hidden md:flex items-center gap-8">
               <Link to="/countries" className="text-muted-foreground hover:text-foreground transition-colors">
                 Countries
+              </Link>
+              <Link to="/trips" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <Plane className="w-4 h-4" />
+                Trips
+              </Link>
+              <Link to="/hotels" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <Hotel className="w-4 h-4" />
+                Hotels
               </Link>
               {isAdmin && (
                 <Link to="/admin" className="text-muted-foreground hover:text-foreground transition-colors">

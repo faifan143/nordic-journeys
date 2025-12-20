@@ -35,11 +35,16 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const response = await authApi.login(data.email, data.password);
-      setAuth(response.user, response.access_token);
+      // Handle both accessToken and access_token response formats
+      const token = response.accessToken || response.access_token;
+      if (!token || !response.user) {
+        throw new Error('Invalid response from server');
+      }
+      setAuth(response.user, token);
       toast.success('Login successful!');
       navigate(response.user.role === 'ADMIN' ? '/admin' : '/');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(error.response?.data?.message || error.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }

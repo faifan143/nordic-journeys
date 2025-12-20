@@ -38,11 +38,24 @@ api.interceptors.response.use(
 export const authApi = {
   login: async (email: string, password: string) => {
     const response = await api.post('/auth/login', { email, password });
-    return response.data;
+    // Handle both accessToken and access_token response formats
+    const data = response.data;
+    if (data.accessToken) {
+      return { ...data, access_token: data.accessToken };
+    }
+    return data;
   },
   me: async () => {
     const response = await api.get('/auth/me');
     return response.data;
+  },
+  register: async (email: string, password: string, role?: 'ADMIN' | 'USER') => {
+    const response = await api.post('/auth/register', { email, password, role });
+    const data = response.data;
+    if (data.accessToken) {
+      return { ...data, access_token: data.accessToken };
+    }
+    return data;
   },
 };
 
@@ -323,6 +336,52 @@ export const embeddingsApi = {
   },
   uploadActivityEmbedding: async (id: string, embedding: number[]) => {
     const response = await api.post(`/embeddings/activities/${id}`, { embedding });
+    return response.data;
+  },
+};
+
+// HOTELS
+export const hotelsApi = {
+  getAll: async (cityId?: string) => {
+    const params = cityId ? { cityId } : {};
+    const response = await api.get('/browse/hotels', { params });
+    return response.data;
+  },
+  getOne: async (id: string) => {
+    const response = await api.get(`/browse/hotels/${id}`);
+    return response.data;
+  },
+  getRoomTypes: async (hotelId: string) => {
+    const response = await api.get(`/browse/hotels/${hotelId}/room-types`);
+    return response.data;
+  },
+};
+
+// TRIPS
+export const tripsApi = {
+  getAll: async (cityId?: string) => {
+    const params = cityId ? { cityId } : {};
+    const response = await api.get('/browse/trips', { params });
+    return response.data;
+  },
+  getOne: async (id: string) => {
+    const response = await api.get(`/browse/trips/${id}`);
+    return response.data;
+  },
+};
+
+// DASHBOARD
+export const dashboardApi = {
+  getGuest: async () => {
+    const response = await api.get('/dashboard/guest');
+    return response.data;
+  },
+  getUser: async () => {
+    const response = await api.get('/dashboard/user');
+    return response.data;
+  },
+  getAdmin: async () => {
+    const response = await api.get('/dashboard/admin');
     return response.data;
   },
 };

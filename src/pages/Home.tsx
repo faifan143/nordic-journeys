@@ -1,18 +1,30 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Hotel as HotelIcon, Plane } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { countriesApi } from '@/lib/api';
-import { Country } from '@/types';
+import { countriesApi, tripsApi, hotelsApi } from '@/lib/api';
+import { Country, Trip, Hotel } from '@/types';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
 
 export default function Home() {
-  const { data: countries, isLoading } = useQuery<Country[]>({
+  const { data: countries, isLoading: countriesLoading } = useQuery<Country[]>({
     queryKey: ['countries'],
     queryFn: countriesApi.getAll,
   });
 
-  const featuredCountries = countries?.slice(0, 5) || [];
+  const { data: trips, isLoading: tripsLoading } = useQuery<Trip[]>({
+    queryKey: ['trips', 'featured'],
+    queryFn: () => tripsApi.getAll(),
+  });
+
+  const { data: hotels, isLoading: hotelsLoading } = useQuery<Hotel[]>({
+    queryKey: ['hotels', 'featured'],
+    queryFn: () => hotelsApi.getAll(),
+  });
+
+  const featuredCountries = countries?.slice(0, 6) || [];
+  const featuredTrips = trips?.slice(0, 6) || [];
+  const featuredHotels = hotels?.slice(0, 6) || [];
 
   return (
     <PublicLayout>
@@ -55,7 +67,7 @@ export default function Home() {
             </p>
           </div>
 
-          {isLoading ? (
+          {countriesLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="premium-card h-80 animate-pulse bg-muted" />
@@ -87,7 +99,7 @@ export default function Home() {
             </div>
           )}
 
-          {!isLoading && featuredCountries.length > 0 && (
+          {!countriesLoading && featuredCountries.length > 0 && (
             <div className="text-center mt-12">
               <Button asChild variant="outline" size="lg" className="rounded-full">
                 <Link to="/countries">
@@ -95,6 +107,148 @@ export default function Home() {
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Featured Trips */}
+      <section className="py-20 md:py-28 bg-muted/30">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <Plane className="w-6 h-6 text-primary" />
+              <h2 className="mb-0">Featured Trips</h2>
+            </div>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Discover curated travel packages for amazing experiences
+            </p>
+          </div>
+
+          {tripsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="premium-card h-80 animate-pulse bg-muted" />
+              ))}
+            </div>
+          ) : featuredTrips.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredTrips.map((trip) => (
+                  <Link
+                    key={trip.id}
+                    to={`/trips/${trip.id}`}
+                    className="premium-card hover-lift group overflow-hidden"
+                  >
+                    <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
+                      <img
+                        src={trip.imageUrl || `https://picsum.photos/seed/${trip.id}/800/600`}
+                        alt={trip.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    </div>
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-2xl group-hover:text-primary transition-colors flex-1">
+                        {trip.name}
+                      </h3>
+                      {trip.price > 0 && (
+                        <span className="text-xl font-bold text-primary ml-4">
+                          ${trip.price}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {trip.city?.name || 'Destination'}
+                    </p>
+                    <p className="text-muted-foreground line-clamp-2">
+                      {trip.description}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+              <div className="text-center mt-12">
+                <Button asChild variant="outline" size="lg" className="rounded-full">
+                  <Link to="/trips">
+                    View All Trips
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No trips available at the moment.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Featured Hotels */}
+      <section className="py-20 md:py-28">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <HotelIcon className="w-6 h-6 text-primary" />
+              <h2 className="mb-0">Featured Hotels</h2>
+            </div>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Find the perfect place to stay for your next adventure
+            </p>
+          </div>
+
+          {hotelsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="premium-card h-80 animate-pulse bg-muted" />
+              ))}
+            </div>
+          ) : featuredHotels.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredHotels.map((hotel) => (
+                  <Link
+                    key={hotel.id}
+                    to={`/hotels/${hotel.id}`}
+                    className="premium-card hover-lift group overflow-hidden"
+                  >
+                    <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
+                      <img
+                        src={hotel.imageUrl || `https://picsum.photos/seed/${hotel.id}/800/600`}
+                        alt={hotel.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    </div>
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-2xl group-hover:text-primary transition-colors flex-1">
+                        {hotel.name}
+                      </h3>
+                      {hotel.pricePerNight > 0 && (
+                        <span className="text-lg font-semibold text-primary ml-4">
+                          ${hotel.pricePerNight}/night
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {hotel.city?.name || 'Location'}
+                    </p>
+                    <p className="text-muted-foreground line-clamp-2">
+                      {hotel.description}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+              <div className="text-center mt-12">
+                <Button asChild variant="outline" size="lg" className="rounded-full">
+                  <Link to="/hotels">
+                    View All Hotels
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No hotels available at the moment.</p>
             </div>
           )}
         </div>

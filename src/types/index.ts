@@ -56,6 +56,101 @@ export interface Activity {
   description: string;
   placeId: string;
   place?: Place;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface RoomType {
+  id: string;
+  hotelId: string;
+  name: string;
+  description?: string;
+  maxGuests: number;
+  pricePerNight: number;
+  capacity: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Hotel {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  cityId: string;
+  city?: City;
+  pricePerNight: number;
+  roomTypes?: RoomType[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Trip {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  cityId: string;
+  city?: City;
+  hotelId?: string;
+  hotel?: Hotel;
+  activities?: Activity[];
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Dashboard Types
+export interface AdminDashboard {
+  statistics: {
+    users: {
+      total: number;
+      admins: number;
+      regular: number;
+    };
+    content: {
+      countries: number;
+      cities: number;
+      places: number;
+      activities: number;
+      hotels: number;
+      trips: number;
+    };
+    reservations: {
+      total: number;
+      hotel: number;
+      trip: number;
+      pending: number;
+      confirmed: number;
+      cancelled: number;
+    };
+    revenue: {
+      total: number;
+      hotel: number;
+      trip: number;
+      thisMonth: number;
+      lastMonth: number;
+      growth: number;
+    };
+  };
+  recent: {
+    users: User[];
+    reservations: any[];
+    tripReservations: any[];
+  };
+  insights: {
+    popularDestinations: Array<{
+      id: string;
+      name: string;
+      country: string;
+      places: number;
+      hotels: number;
+      trips: number;
+    }>;
+    reservationTrends: {
+      last7Days: { hotel: number; trip: number; total: number };
+      last30Days: { hotel: number; trip: number; total: number };
+    };
+  };
 }

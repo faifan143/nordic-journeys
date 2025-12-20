@@ -14,6 +14,10 @@ import CountryDetailPage from './pages/CountryDetailPage';
 import CityDetailPage from './pages/CityDetailPage';
 import PlaceDetailPage from './pages/PlaceDetailPage';
 import ActivityDetailPage from './pages/ActivityDetailPage';
+import TripsPage from './pages/TripsPage';
+import TripDetailPage from './pages/TripDetailPage';
+import HotelsPage from './pages/HotelsPage';
+import HotelDetailPage from './pages/HotelDetailPage';
 import LoginPage from './pages/auth/LoginPage';
 
 // Admin Pages
@@ -50,6 +54,10 @@ const App = () => {
             <Route path="/cities/:id" element={<CityDetailPage />} />
             <Route path="/places/:id" element={<PlaceDetailPage />} />
             <Route path="/activities/:id" element={<ActivityDetailPage />} />
+            <Route path="/trips" element={<TripsPage />} />
+            <Route path="/trips/:id" element={<TripDetailPage />} />
+            <Route path="/hotels" element={<HotelsPage />} />
+            <Route path="/hotels/:id" element={<HotelDetailPage />} />
             <Route path="/auth/login" element={<LoginPage />} />
 
             {/* Admin Routes */}

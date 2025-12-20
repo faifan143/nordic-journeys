@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Hotel as HotelIcon, Plane } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { citiesApi, placesApi } from '@/lib/api';
-import { City, Place } from '@/types';
+import { citiesApi, placesApi, hotelsApi, tripsApi } from '@/lib/api';
+import { City, Place, Hotel, Trip } from '@/types';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
 
 export default function CityDetailPage() {
@@ -18,6 +18,18 @@ export default function CityDetailPage() {
   const { data: places, isLoading: placesLoading } = useQuery<Place[]>({
     queryKey: ['places', id],
     queryFn: () => placesApi.getAll(id),
+    enabled: !!id,
+  });
+
+  const { data: hotels, isLoading: hotelsLoading } = useQuery<Hotel[]>({
+    queryKey: ['hotels', id],
+    queryFn: () => hotelsApi.getAll(id),
+    enabled: !!id,
+  });
+
+  const { data: trips, isLoading: tripsLoading } = useQuery<Trip[]>({
+    queryKey: ['trips', id],
+    queryFn: () => tripsApi.getAll(id),
     enabled: !!id,
   });
 
@@ -55,7 +67,7 @@ export default function CityDetailPage() {
             </div>
 
             {/* Places Section */}
-            <div>
+            <div className="mb-16">
               <h2 className="mb-8">Places in {city?.name}</h2>
               {placesLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -63,9 +75,9 @@ export default function CityDetailPage() {
                     <div key={i} className="premium-card h-80 animate-pulse bg-muted" />
                   ))}
                 </div>
-              ) : (
+              ) : places && places.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {places?.map((place) => (
+                  {places.map((place) => (
                     <Link
                       key={place.id}
                       to={`/places/${place.id}`}
@@ -87,6 +99,104 @@ export default function CityDetailPage() {
                     </Link>
                   ))}
                 </div>
+              ) : (
+                <p className="text-muted-foreground">No places available in this city.</p>
+              )}
+            </div>
+
+            {/* Hotels Section */}
+            <div className="mb-16">
+              <div className="flex items-center gap-3 mb-8">
+                <HotelIcon className="w-6 h-6 text-primary" />
+                <h2 className="mb-0">Hotels in {city?.name}</h2>
+              </div>
+              {hotelsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="premium-card h-80 animate-pulse bg-muted" />
+                  ))}
+                </div>
+              ) : hotels && hotels.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {hotels.map((hotel) => (
+                    <Link
+                      key={hotel.id}
+                      to={`/hotels/${hotel.id}`}
+                      className="premium-card hover-lift group overflow-hidden"
+                    >
+                      <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
+                        <img
+                          src={hotel.imageUrl || `https://picsum.photos/seed/${hotel.id}/800/600`}
+                          alt={hotel.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      </div>
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-2xl group-hover:text-primary transition-colors flex-1">
+                          {hotel.name}
+                        </h3>
+                        {hotel.pricePerNight > 0 && (
+                          <span className="text-lg font-semibold text-primary ml-4">
+                            ${hotel.pricePerNight}/night
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground line-clamp-2">
+                        {hotel.description}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No hotels available in this city.</p>
+              )}
+            </div>
+
+            {/* Trips Section */}
+            <div>
+              <div className="flex items-center gap-3 mb-8">
+                <Plane className="w-6 h-6 text-primary" />
+                <h2 className="mb-0">Trips in {city?.name}</h2>
+              </div>
+              {tripsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="premium-card h-80 animate-pulse bg-muted" />
+                  ))}
+                </div>
+              ) : trips && trips.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {trips.map((trip) => (
+                    <Link
+                      key={trip.id}
+                      to={`/trips/${trip.id}`}
+                      className="premium-card hover-lift group overflow-hidden"
+                    >
+                      <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
+                        <img
+                          src={trip.imageUrl || `https://picsum.photos/seed/${trip.id}/800/600`}
+                          alt={trip.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      </div>
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-2xl group-hover:text-primary transition-colors flex-1">
+                          {trip.name}
+                        </h3>
+                        {trip.price > 0 && (
+                          <span className="text-xl font-bold text-primary ml-4">
+                            ${trip.price}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground line-clamp-2">
+                        {trip.description}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No trips available in this city.</p>
               )}
             </div>
           </>
