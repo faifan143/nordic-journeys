@@ -21,34 +21,53 @@ export const PublicLayout = ({ children }: PublicLayoutProps) => {
               <span className="text-2xl font-bold text-foreground">Explore</span>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-8">
-              <Link to="/countries" className="text-muted-foreground hover:text-foreground transition-colors">
-                Countries
-              </Link>
-              <Link to="/trips" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                <Plane className="w-4 h-4" />
-                Trips
-              </Link>
-              <Link to="/hotels" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                <Hotel className="w-4 h-4" />
-                Hotels
-              </Link>
-              {isAdmin && (
-                <Link to="/admin" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Admin
+            <div className="flex items-center gap-2">
+              <nav className="hidden md:flex items-center gap-1">
+                <Link 
+                  to="/countries" 
+                  className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-all duration-200"
+                >
+                  Countries
                 </Link>
-              )}
-            </nav>
+                <Link 
+                  to="/trips" 
+                  className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-all duration-200 flex items-center gap-1.5"
+                >
+                  <Plane className="w-3.5 h-3.5" />
+                  Trips
+                </Link>
+                <Link 
+                  to="/hotels" 
+                  className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-all duration-200 flex items-center gap-1.5"
+                >
+                  <Hotel className="w-3.5 h-3.5" />
+                  Hotels
+                </Link>
+                {isAdmin && (
+                  <Link 
+                    to="/admin" 
+                    className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-all duration-200"
+                  >
+                    Admin
+                  </Link>
+                )}
+              </nav>
 
-            <div className="flex items-center gap-3">
+              <div className="h-6 w-px bg-border mx-2 hidden md:block" />
+
               {isAuthenticated ? (
-                <Button onClick={logout} variant="outline" size="sm">
+                <Button 
+                  onClick={logout} 
+                  variant="outline" 
+                  size="sm"
+                  className="gap-2"
+                >
                   Logout
                 </Button>
               ) : (
-                <Button asChild size="sm">
+                <Button asChild size="sm" className="gap-2">
                   <Link to="/auth/login">
-                    <LogIn className="w-4 h-4 mr-2" />
+                    <LogIn className="w-4 h-4" />
                     Login
                   </Link>
                 </Button>
