@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/button';
 import { tripsApi } from '@/lib/api';
 import { Trip } from '@/types';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
+import { TripReservationForm } from '@/components/TripReservationForm';
+import { useAuthStore } from '@/store/authStore';
 
 export default function TripDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { isAuthenticated } = useAuthStore();
 
   const { data: trip, isLoading: tripLoading } = useQuery<Trip>({
     queryKey: ['trip', id],
@@ -75,9 +78,15 @@ export default function TripDetailPage() {
                 )}
               </div>
 
-              <p className="text-xl text-muted-foreground max-w-3xl">
+              <p className="text-xl text-muted-foreground max-w-3xl mb-6">
                 {trip?.description}
               </p>
+
+              {isAuthenticated && trip && (
+                <div className="mt-6">
+                  <TripReservationForm trip={trip} />
+                </div>
+              )}
             </div>
 
             {/* Activities Section */}
@@ -86,27 +95,26 @@ export default function TripDetailPage() {
                 <h2 className="mb-8">Included Activities</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {trip.activities.map((activity) => (
-                    <Link
+                    <div
                       key={activity.id}
-                      to={`/activities/${activity.id}`}
-                      className="premium-card hover-lift group"
+                      className="premium-card"
                     >
                       {activity.imageUrl && (
                         <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4">
                           <img
                             src={activity.imageUrl}
                             alt={activity.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            className="w-full h-full object-cover"
                           />
                         </div>
                       )}
-                      <h3 className="text-2xl mb-3 group-hover:text-primary transition-colors">
+                      <h3 className="text-2xl mb-3">
                         {activity.name}
                       </h3>
                       <p className="text-muted-foreground line-clamp-3">
                         {activity.description}
                       </p>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </div>

@@ -370,6 +370,62 @@ export const tripsApi = {
   },
 };
 
+// RESERVATIONS (Hotel)
+export const reservationsApi = {
+  getAll: async () => {
+    const response = await api.get('/reservations');
+    return response.data;
+  },
+  getMyReservations: async () => {
+    const response = await api.get('/reservations/me');
+    return response.data;
+  },
+  create: async (data: {
+    roomTypeId: string;
+    startDate: string;
+    endDate: string;
+    guests: number;
+  }) => {
+    const response = await api.post('/reservations', data);
+    return response.data;
+  },
+  updateStatus: async (id: string, status: 'PENDING' | 'CONFIRMED' | 'CANCELLED') => {
+    const response = await api.patch(`/reservations/${id}/status`, { status });
+    return response.data;
+  },
+  cancelMyReservation: async (id: string) => {
+    const response = await api.patch(`/reservations/me/${id}/status`, { status: 'CANCELLED' });
+    return response.data;
+  },
+};
+
+// TRIP RESERVATIONS
+export const tripReservationsApi = {
+  getAll: async () => {
+    const response = await api.get('/trip-reservations');
+    return response.data;
+  },
+  getMyReservations: async () => {
+    const response = await api.get('/trip-reservations/me');
+    return response.data;
+  },
+  create: async (data: {
+    tripId: string;
+    guests: number;
+  }) => {
+    const response = await api.post('/trip-reservations', data);
+    return response.data;
+  },
+  updateStatus: async (id: string, status: 'PENDING' | 'CONFIRMED' | 'CANCELLED') => {
+    const response = await api.patch(`/trip-reservations/${id}/status`, { status });
+    return response.data;
+  },
+  cancelMyReservation: async (id: string) => {
+    const response = await api.patch(`/trip-reservations/me/${id}/status`, { status: 'CANCELLED' });
+    return response.data;
+  },
+};
+
 // DASHBOARD
 export const dashboardApi = {
   getGuest: async () => {

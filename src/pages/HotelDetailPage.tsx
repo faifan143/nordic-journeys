@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/button';
 import { hotelsApi } from '@/lib/api';
 import { Hotel as HotelType } from '@/types';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
+import { HotelReservationForm } from '@/components/HotelReservationForm';
+import { useAuthStore } from '@/store/authStore';
 
 export default function HotelDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { isAuthenticated } = useAuthStore();
 
   const { data: hotel, isLoading: hotelLoading } = useQuery<HotelType>({
     queryKey: ['hotel', id],
@@ -74,9 +77,18 @@ export default function HotelDetailPage() {
                 )}
               </div>
 
-              <p className="text-xl text-muted-foreground max-w-3xl">
+              <p className="text-xl text-muted-foreground max-w-3xl mb-6">
                 {hotel?.description}
               </p>
+
+              {isAuthenticated && roomTypes && roomTypes.length > 0 && (
+                <div className="mt-6">
+                  <HotelReservationForm
+                    roomTypes={roomTypes}
+                    hotelName={hotel?.name || ''}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Room Types Section */}
@@ -109,7 +121,7 @@ export default function HotelDetailPage() {
                             <div className="text-sm text-muted-foreground">per night</div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                           <div className="flex items-center gap-2">
                             <Users className="w-4 h-4" />
                             <span>Up to {roomType.maxGuests} guests</span>
@@ -118,6 +130,12 @@ export default function HotelDetailPage() {
                             <span>{roomType.capacity} rooms available</span>
                           )}
                         </div>
+                        {isAuthenticated && (
+                          <HotelReservationForm
+                            roomTypes={[roomType]}
+                            hotelName={hotel?.name || ''}
+                          />
+                        )}
                       </div>
                     ))}
                   </div>

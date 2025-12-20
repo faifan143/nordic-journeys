@@ -102,18 +102,17 @@ export default function PlaceDetailPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {activities?.map((activity) => (
-                    <Link
+                    <div
                       key={activity.id}
-                      to={`/activities/${activity.id}`}
-                      className="premium-card hover-lift group"
+                      className="premium-card"
                     >
-                      <h3 className="text-2xl mb-3 group-hover:text-primary transition-colors">
+                      <h3 className="text-2xl mb-3">
                         {activity.name}
                       </h3>
                       <p className="text-muted-foreground">
                         {activity.description}
                       </p>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}

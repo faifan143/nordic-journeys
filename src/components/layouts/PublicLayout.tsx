@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, LogIn, Plane, Hotel } from 'lucide-react';
+import { MapPin, LogIn, Plane, Hotel, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 
@@ -43,6 +43,15 @@ export const PublicLayout = ({ children }: PublicLayoutProps) => {
                   <Hotel className="w-3.5 h-3.5" />
                   Hotels
                 </Link>
+                {isAuthenticated && (
+                  <Link 
+                    to="/reservations" 
+                    className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-all duration-200 flex items-center gap-1.5"
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    Reservations
+                  </Link>
+                )}
                 {isAdmin && (
                   <Link 
                     to="/admin" 

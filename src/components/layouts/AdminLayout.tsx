@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { MapPin, Home, Globe, Building2, MapPinned, Tag, Palette, Zap, Upload, LogOut } from 'lucide-react';
+import { MapPin, Home, Globe, Building2, MapPinned, Tag, Palette, Zap, Upload, LogOut, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,7 @@ const navItems = [
   { icon: Tag, label: 'Categories', path: '/admin/categories' },
   { icon: Palette, label: 'Themes', path: '/admin/themes' },
   { icon: Upload, label: 'Uploads', path: '/admin/uploads' },
+  { icon: Calendar, label: 'Reservations', path: '/admin/reservations' },
 ];
 
 export const AdminLayout = ({ children }: AdminLayoutProps) => {

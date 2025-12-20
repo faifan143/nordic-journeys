@@ -101,6 +101,33 @@ export interface Trip {
   updatedAt: string;
 }
 
+export interface Reservation {
+  id: string;
+  userId: string;
+  user?: User;
+  roomTypeId: string;
+  roomType: RoomType;
+  startDate: string;
+  endDate: string;
+  guests: number;
+  totalPrice: number;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TripReservation {
+  id: string;
+  userId: string;
+  user?: User;
+  tripId: string;
+  trip: Trip;
+  guests: number;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Dashboard Types
 export interface AdminDashboard {
   statistics: {

@@ -13,11 +13,11 @@ import CountriesPage from './pages/CountriesPage';
 import CountryDetailPage from './pages/CountryDetailPage';
 import CityDetailPage from './pages/CityDetailPage';
 import PlaceDetailPage from './pages/PlaceDetailPage';
-import ActivityDetailPage from './pages/ActivityDetailPage';
 import TripsPage from './pages/TripsPage';
 import TripDetailPage from './pages/TripDetailPage';
 import HotelsPage from './pages/HotelsPage';
 import HotelDetailPage from './pages/HotelDetailPage';
+import UserReservationsPage from './pages/UserReservationsPage';
 import LoginPage from './pages/auth/LoginPage';
 
 // Admin Pages
@@ -29,6 +29,7 @@ import ActivitiesAdmin from './pages/admin/ActivitiesAdmin';
 import CategoriesAdmin from './pages/admin/CategoriesAdmin';
 import ThemesAdmin from './pages/admin/ThemesAdmin';
 import UploadsAdmin from './pages/admin/UploadsAdmin';
+import ReservationsAdmin from './pages/admin/ReservationsAdmin';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -53,11 +54,18 @@ const App = () => {
             <Route path="/countries/:id" element={<CountryDetailPage />} />
             <Route path="/cities/:id" element={<CityDetailPage />} />
             <Route path="/places/:id" element={<PlaceDetailPage />} />
-            <Route path="/activities/:id" element={<ActivityDetailPage />} />
             <Route path="/trips" element={<TripsPage />} />
             <Route path="/trips/:id" element={<TripDetailPage />} />
             <Route path="/hotels" element={<HotelsPage />} />
             <Route path="/hotels/:id" element={<HotelDetailPage />} />
+            <Route
+              path="/reservations"
+              element={
+                <ProtectedRoute>
+                  <UserReservationsPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/auth/login" element={<LoginPage />} />
 
             {/* Admin Routes */}
@@ -122,6 +130,14 @@ const App = () => {
               element={
                 <ProtectedRoute requireAdmin>
                   <UploadsAdmin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reservations"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <ReservationsAdmin />
                 </ProtectedRoute>
               }
             />
