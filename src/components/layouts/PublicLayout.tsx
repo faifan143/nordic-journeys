@@ -81,15 +81,6 @@ export const PublicLayout = ({ children }: PublicLayoutProps) => {
       <main className="flex-1">
         {children}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-card border-t border-border py-12">
-        <div className="container mx-auto px-6">
-          <div className="text-center text-muted-foreground">
-            <p>&copy; 2025 Explore. Premium tourism platform.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
