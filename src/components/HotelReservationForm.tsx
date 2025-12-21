@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { reservationsApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { RoomType } from '@/types';
+import { useAuthStore } from '@/store/authStore';
 
 const reservationSchema = z.object({
   roomTypeId: z.string().min(1, 'Please select a room type'),
@@ -42,6 +44,8 @@ interface HotelReservationFormProps {
 export function HotelReservationForm({ roomTypes, hotelName }: HotelReservationFormProps) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -84,6 +88,12 @@ export function HotelReservationForm({ roomTypes, hotelName }: HotelReservationF
   });
 
   const onSubmit = (data: ReservationForm) => {
+    if (!isAuthenticated) {
+      toast.error('Please login to make a reservation');
+      setOpen(false);
+      navigate('/auth/login');
+      return;
+    }
     reservationMutation.mutate({
       roomTypeId: data.roomTypeId,
       startDate: data.startDate,

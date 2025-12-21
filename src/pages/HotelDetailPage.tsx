@@ -18,12 +18,15 @@ export default function HotelDetailPage() {
     enabled: !!id,
   });
 
-  const { data: roomTypes, isLoading: roomTypesLoading } = useQuery({
+  // Use roomTypes from hotel object if available, otherwise fetch separately
+  const { data: fetchedRoomTypes, isLoading: roomTypesLoading } = useQuery({
     queryKey: ['roomTypes', id],
     queryFn: () => hotelsApi.getRoomTypes(id!),
-    enabled: !!id,
+    enabled: !!id && (!hotel?.roomTypes || hotel.roomTypes.length === 0),
   });
 
+  const roomTypes = hotel?.roomTypes || fetchedRoomTypes || [];
+  
   return (
     <PublicLayout>
       <div className="container mx-auto px-6 py-16">
@@ -81,7 +84,7 @@ export default function HotelDetailPage() {
                 {hotel?.description}
               </p>
 
-              {isAuthenticated && roomTypes && roomTypes.length > 0 && (
+              {roomTypes && roomTypes.length > 0 && (
                 <div className="mt-6">
                   <HotelReservationForm
                     roomTypes={roomTypes}
@@ -92,56 +95,55 @@ export default function HotelDetailPage() {
             </div>
 
             {/* Room Types Section */}
-            {roomTypes && roomTypes.length > 0 && (
+            {roomTypes && roomTypes.length > 0 ? (
               <div>
                 <h2 className="mb-8">Available Room Types</h2>
-                {roomTypesLoading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[...Array(4)].map((_, i) => (
-                      <div key={i} className="premium-card h-48 animate-pulse bg-muted" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {roomTypes.map((roomType: any) => (
-                      <div key={roomType.id} className="premium-card">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <h3 className="text-2xl mb-2">{roomType.name}</h3>
-                            {roomType.description && (
-                              <p className="text-muted-foreground mb-4">
-                                {roomType.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right ml-4">
-                            <div className="text-2xl font-bold text-primary">
-                              ${roomType.pricePerNight}
-                            </div>
-                            <div className="text-sm text-muted-foreground">per night</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4" />
-                            <span>Up to {roomType.maxGuests} guests</span>
-                          </div>
-                          {roomType.capacity && (
-                            <span>{roomType.capacity} rooms available</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {roomTypes.map((roomType: any) => (
+                    <div key={roomType.id} className="premium-card">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-2xl mb-2">{roomType.name}</h3>
+                          {roomType.description && (
+                            <p className="text-muted-foreground mb-4">
+                              {roomType.description}
+                            </p>
                           )}
                         </div>
-                        {isAuthenticated && (
-                          <HotelReservationForm
-                            roomTypes={[roomType]}
-                            hotelName={hotel?.name || ''}
-                          />
+                        <div className="text-right ml-4">
+                          <div className="text-2xl font-bold text-primary">
+                            ${roomType.pricePerNight}
+                          </div>
+                          <div className="text-sm text-muted-foreground">per night</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          <span>Up to {roomType.maxGuests} guests</span>
+                        </div>
+                        {roomType.capacity && (
+                          <span>{roomType.capacity} rooms available</span>
                         )}
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <HotelReservationForm
+                        roomTypes={[roomType]}
+                        hotelName={hotel?.name || ''}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-            )}
+            ) : roomTypesLoading ? (
+              <div>
+                <h2 className="mb-8">Available Room Types</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="premium-card h-48 animate-pulse bg-muted" />
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </>
         )}
       </div>
