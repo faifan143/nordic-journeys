@@ -104,27 +104,27 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <h1 className="mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="mb-2 text-2xl sm:text-3xl md:text-4xl">Dashboard</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Overview of your tourism platform
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div key={stat.label} className="premium-card compact">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
-                  <p className="text-3xl font-bold">{stat.value}</p>
+                  <p className="text-2xl sm:text-3xl font-bold truncate">{stat.value}</p>
                   {stat.sublabel && (
-                    <p className="text-xs text-muted-foreground mt-1">{stat.sublabel}</p>
+                    <p className="text-xs text-muted-foreground mt-1 truncate">{stat.sublabel}</p>
                   )}
                 </div>
-                <Icon className={`w-10 h-10 ${stat.color} opacity-80`} />
+                <Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.color} opacity-80 flex-shrink-0`} />
               </div>
             </div>
           );
@@ -132,32 +132,32 @@ export default function AdminDashboard() {
       </div>
 
       {/* Reservation Statistics */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div className="premium-card compact">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-xs text-muted-foreground mb-1">Total Reservations</p>
-              <p className="text-2xl font-bold">{dashboard.statistics.reservations.total}</p>
+              <p className="text-xl sm:text-2xl font-bold">{dashboard.statistics.reservations.total}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 {dashboard.statistics.reservations.hotel} hotels, {dashboard.statistics.reservations.trip} trips
               </p>
             </div>
-            <TrendingUp className="w-8 h-8 text-blue-600 opacity-80" />
+            <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 opacity-80 flex-shrink-0" />
           </div>
         </div>
         <div className="premium-card compact">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-xs text-muted-foreground mb-1">Pending</p>
-              <p className="text-2xl font-bold">{dashboard.statistics.reservations.pending}</p>
+              <p className="text-xl sm:text-2xl font-bold">{dashboard.statistics.reservations.pending}</p>
             </div>
           </div>
         </div>
         <div className="premium-card compact">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-xs text-muted-foreground mb-1">Confirmed</p>
-              <p className="text-2xl font-bold">{dashboard.statistics.reservations.confirmed}</p>
+              <p className="text-xl sm:text-2xl font-bold">{dashboard.statistics.reservations.confirmed}</p>
             </div>
           </div>
         </div>

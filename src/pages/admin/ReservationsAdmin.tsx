@@ -29,9 +29,9 @@ export default function ReservationsAdmin() {
       </div>
 
       <Tabs defaultValue="hotels" className="w-full">
-        <TabsList>
-          <TabsTrigger value="hotels">Hotel Reservations</TabsTrigger>
-          <TabsTrigger value="trips">Trip Reservations</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="hotels" className="text-xs sm:text-sm">Hotel Reservations</TabsTrigger>
+          <TabsTrigger value="trips" className="text-xs sm:text-sm">Trip Reservations</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hotels">
@@ -101,20 +101,20 @@ function HotelReservationsTab() {
     <div className="space-y-4 mt-6">
       {reservations.map((reservation) => (
         <div key={reservation.id} className="premium-card">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-xl font-semibold">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                <h3 className="text-lg sm:text-xl font-semibold">
                   {reservation.roomType?.hotel?.name || 'Hotel'}
                 </h3>
-                <Badge className={`${getStatusColor(reservation.status)} text-white`}>
+                <Badge className={`${getStatusColor(reservation.status)} text-white w-fit`}>
                   {reservation.status}
                 </Badge>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-3">
                 <div>
-                  <p className="text-sm text-muted-foreground">Room Type</p>
-                  <p className="font-medium">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Room Type</p>
+                  <p className="font-medium text-sm sm:text-base">
                     {reservation.roomType?.name || 'N/A'}
                     {reservation.room && (
                       <span className="block text-xs text-muted-foreground">
@@ -124,20 +124,20 @@ function HotelReservationsTab() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Guest</p>
-                  <p className="font-medium">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Guest</p>
+                  <p className="font-medium text-sm sm:text-base break-words">
                     {reservation.user?.email || 'Unknown'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Dates</p>
-                  <p className="font-medium text-sm">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Dates</p>
+                  <p className="font-medium text-xs sm:text-sm">
                     {formatDate(reservation.startDate)} - {formatDate(reservation.endDate)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="font-medium">${reservation.totalPrice}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Total</p>
+                  <p className="font-medium text-sm sm:text-base">${reservation.totalPrice}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -233,46 +233,46 @@ function TripReservationsTab() {
     <div className="space-y-4 mt-6">
       {reservations.map((reservation) => (
         <div key={reservation.id} className="premium-card">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
                 <Link
                   to={`/trips/${reservation.trip.id}`}
-                  className="text-xl font-semibold hover:text-primary transition-colors"
+                  className="text-lg sm:text-xl font-semibold hover:text-primary transition-colors"
                 >
                   {reservation.trip.name}
                 </Link>
-                <Badge className={`${getStatusColor(reservation.status)} text-white`}>
+                <Badge className={`${getStatusColor(reservation.status)} text-white w-fit`}>
                   {reservation.status}
                 </Badge>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-3">
                 <div>
-                  <p className="text-sm text-muted-foreground">Guest</p>
-                  <p className="font-medium">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Guest</p>
+                  <p className="font-medium text-sm sm:text-base break-words">
                     {reservation.user?.email || 'Unknown'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Location</p>
-                  <p className="font-medium">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Location</p>
+                  <p className="font-medium text-sm sm:text-base">
                     {reservation.trip.city?.name || 'Unknown'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="font-medium">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Total</p>
+                  <p className="font-medium text-sm sm:text-base">
                     ${reservation.trip.price * reservation.guests}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                 <Users className="w-4 h-4" />
                 <span>{reservation.guests} guests</span>
               </div>
             </div>
             {reservation.status === 'PENDING' && (
-              <div className="flex gap-2 ml-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:ml-4 w-full sm:w-auto">
                 <Button
                   variant="default"
                   size="sm"
@@ -280,6 +280,7 @@ function TripReservationsTab() {
                     updateStatusMutation.mutate({ id: reservation.id, status: 'CONFIRMED' })
                   }
                   disabled={updateStatusMutation.isPending}
+                  className="w-full sm:w-auto"
                 >
                   <Check className="w-4 h-4 mr-2" />
                   Accept
@@ -291,6 +292,7 @@ function TripReservationsTab() {
                     updateStatusMutation.mutate({ id: reservation.id, status: 'CANCELLED' })
                   }
                   disabled={updateStatusMutation.isPending}
+                  className="w-full sm:w-auto"
                 >
                   <X className="w-4 h-4 mr-2" />
                   Reject
