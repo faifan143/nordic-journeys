@@ -16,6 +16,15 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // IMPORTANT: For FormData requests, don't override Content-Type
+    // Let axios/browser set it automatically with the correct boundary
+    if (config.data instanceof FormData) {
+      // Remove Content-Type header if it's set - browser will set it with boundary
+      delete config.headers['Content-Type'];
+      console.log('FormData detected - letting browser set Content-Type with boundary');
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)
@@ -64,9 +73,7 @@ export const storageApi = {
   upload: async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await api.post('/storage/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.post('/storage/upload', formData);
     return response.data;
   },
 };
@@ -84,31 +91,44 @@ export const countriesApi = {
   create: async (data: any, imageFile?: File) => {
     const formData = new FormData();
     formData.append('name', data.name);
-    formData.append('description', data.description);
+    formData.append('description', data.description || '');
     if (imageFile) {
       formData.append('image', imageFile);
+      console.log('Uploading new country image file:', imageFile.name);
+    } else if (data.imageUrl && data.imageUrl.trim() !== '') {
+      // Only send imageUrl if it's a valid URL (not a placeholder from seed data)
+      const imageUrl = data.imageUrl.trim();
+      if (!imageUrl.includes('picsum.photos')) {
+        formData.append('imageUrl', imageUrl);
+      } else {
+        console.warn('Ignoring placeholder image URL (picsum.photos)');
+      }
     }
-    if (data.imageUrl) {
-      formData.append('imageUrl', data.imageUrl);
+    const response = await api.post('/countries', formData);
+    if (response.data?.imageUrl?.includes('picsum.photos')) {
+      console.error('⚠️ Backend returned placeholder image URL!');
     }
-    const response = await api.post('/countries', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
     return response.data;
   },
   update: async (id: string, data: any, imageFile?: File) => {
     const formData = new FormData();
     formData.append('name', data.name);
-    formData.append('description', data.description);
+    formData.append('description', data.description || '');
     if (imageFile) {
       formData.append('image', imageFile);
+      console.log('Uploading new country image file:', imageFile.name);
+    } else if (data.imageUrl && data.imageUrl.trim() !== '') {
+      const imageUrl = data.imageUrl.trim();
+      if (!imageUrl.includes('picsum.photos')) {
+        formData.append('imageUrl', imageUrl);
+      } else {
+        console.warn('Ignoring placeholder image URL (picsum.photos)');
+      }
     }
-    if (data.imageUrl) {
-      formData.append('imageUrl', data.imageUrl);
+    const response = await api.put(`/countries/${id}`, formData);
+    if (response.data?.imageUrl?.includes('picsum.photos')) {
+      console.error('⚠️ Backend returned placeholder image URL!');
     }
-    const response = await api.put(`/countries/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
     return response.data;
   },
   delete: async (id: string) => {
@@ -131,33 +151,101 @@ export const citiesApi = {
   create: async (data: any, imageFile?: File) => {
     const formData = new FormData();
     formData.append('name', data.name);
-    formData.append('description', data.description);
+    formData.append('description', data.description || '');
     formData.append('countryId', data.countryId);
+    
     if (imageFile) {
       formData.append('image', imageFile);
+      console.log('Uploading new image file:', imageFile.name, imageFile.type, imageFile.size);
+      // CRITICAL: When uploading a new file, DO NOT send imageUrl
+      // This ensures the backend processes the uploaded file and returns the real URL
+    } else if (data.imageUrl && data.imageUrl.trim() !== '') {
+      // Only send imageUrl if it's a valid URL (not a placeholder from seed data)
+      // Never send picsum.photos URLs - those are placeholders, not real uploaded images
+      const imageUrl = data.imageUrl.trim();
+      if (!imageUrl.includes('picsum.photos')) {
+        formData.append('imageUrl', imageUrl);
+      } else {
+        console.warn('Ignoring placeholder image URL (picsum.photos) - treating as no image');
+      }
     }
-    if (data.imageUrl) {
-      formData.append('imageUrl', data.imageUrl);
+    
+    const response = await api.post('/cities', formData);
+    
+    // Validate response - backend should return a real uploaded image URL, not placeholder
+    if (response.data?.imageUrl?.includes('picsum.photos')) {
+      console.error('⚠️ Backend returned placeholder image URL instead of uploaded image!');
+      console.error('Response:', response.data);
+      // Don't throw error, but log it - the backend should handle this correctly
     }
-    const response = await api.post('/cities', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    
     return response.data;
   },
   update: async (id: string, data: any, imageFile?: File) => {
+    console.log('=== citiesApi.update() START ===');
+    console.log('City ID:', id);
+    console.log('Data:', data);
+    console.log('Image file provided:', !!imageFile);
+    
     const formData = new FormData();
     formData.append('name', data.name);
-    formData.append('description', data.description);
+    formData.append('description', data.description || '');
     formData.append('countryId', data.countryId);
+    
+    // Log what we're adding to FormData
+    console.log('FormData entries:');
+    console.log('  - name:', data.name);
+    console.log('  - description:', data.description || '');
+    console.log('  - countryId:', data.countryId);
+    
     if (imageFile) {
       formData.append('image', imageFile);
+      console.log('✅ Adding image file to FormData:');
+      console.log('  - name:', imageFile.name);
+      console.log('  - type:', imageFile.type);
+      console.log('  - size:', imageFile.size, 'bytes');
+      // CRITICAL: When uploading a new file, DO NOT send imageUrl
+      // This ensures the backend processes the uploaded file and returns the real URL from storage
+      console.log('  - NOT sending imageUrl (file takes precedence)');
+    } else if (data.imageUrl && data.imageUrl.trim() !== '') {
+      // Only send imageUrl if it's a valid URL (not a placeholder from seed data)
+      // Never send picsum.photos URLs - those are placeholders from seed data, not real uploaded images
+      const imageUrl = data.imageUrl.trim();
+      if (!imageUrl.includes('picsum.photos')) {
+        formData.append('imageUrl', imageUrl);
+        console.log('  - Adding imageUrl (no file uploaded):', imageUrl);
+      } else {
+        console.warn('⚠️ Ignoring placeholder image URL (picsum.photos) - treating as no image');
+        // Don't send placeholder URLs - let backend preserve existing real image or set to null
+      }
+    } else {
+      console.log('  - No image file and no imageUrl provided');
     }
-    if (data.imageUrl) {
-      formData.append('imageUrl', data.imageUrl);
+    
+    // Verify FormData contents (for debugging)
+    console.log('Sending PUT request to:', `/cities/${id}`);
+    
+    // Don't set Content-Type header - let axios/browser set it automatically with boundary
+    // Setting it manually can cause issues with FormData
+    const response = await api.put(`/cities/${id}`, formData);
+    
+    console.log('Backend response status:', response.status);
+    console.log('Backend response data:', response.data);
+    
+    // Validate response - backend should return a real uploaded image URL, not placeholder
+    if (response.data?.imageUrl?.includes('picsum.photos')) {
+      console.error('❌ Backend returned placeholder image URL instead of uploaded image!');
+      console.error('Expected: Real uploaded image URL from storage (e.g., Backblaze B2 URL)');
+      console.error('Got:', response.data.imageUrl);
+      console.error('Full response:', response.data);
+      console.error('This suggests the backend did not process the uploaded file correctly.');
+    } else if (response.data?.imageUrl && !response.data.imageUrl.includes('picsum.photos')) {
+      console.log('✅ Backend returned valid image URL:', response.data.imageUrl);
+    } else {
+      console.log('⚠️ No imageUrl in response (may be null/empty)');
     }
-    const response = await api.put(`/cities/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    
+    console.log('=== citiesApi.update() END ===');
     return response.data;
   },
   delete: async (id: string) => {
@@ -214,6 +302,16 @@ export const placesApi = {
     formData.append('name', data.name);
     formData.append('description', data.description);
     formData.append('cityId', data.cityId);
+    if (data.categoryIds && Array.isArray(data.categoryIds)) {
+      data.categoryIds.forEach((id: string) => {
+        formData.append('categoryIds', id);
+      });
+    }
+    if (data.themeIds && Array.isArray(data.themeIds)) {
+      data.themeIds.forEach((id: string) => {
+        formData.append('themeIds', id);
+      });
+    }
     if (imageFiles && imageFiles.length > 0) {
       imageFiles.forEach((file) => {
         formData.append('images', file);
@@ -224,9 +322,7 @@ export const placesApi = {
         formData.append('imageUrls', url);
       });
     }
-    const response = await api.post('/places', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.post('/places', formData);
     return response.data;
   },
   update: async (id: string, data: any, imageFiles?: File[]) => {
@@ -234,6 +330,16 @@ export const placesApi = {
     formData.append('name', data.name);
     formData.append('description', data.description);
     formData.append('cityId', data.cityId);
+    if (data.categoryIds && Array.isArray(data.categoryIds)) {
+      data.categoryIds.forEach((categoryId: string) => {
+        formData.append('categoryIds', categoryId);
+      });
+    }
+    if (data.themeIds && Array.isArray(data.themeIds)) {
+      data.themeIds.forEach((themeId: string) => {
+        formData.append('themeIds', themeId);
+      });
+    }
     if (imageFiles && imageFiles.length > 0) {
       imageFiles.forEach((file) => {
         formData.append('images', file);
@@ -244,9 +350,7 @@ export const placesApi = {
         formData.append('imageUrls', url);
       });
     }
-    const response = await api.put(`/places/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.put(`/places/${id}`, formData);
     return response.data;
   },
   delete: async (id: string) => {
@@ -264,9 +368,7 @@ export const placesApi = {
   uploadImage: async (id: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await api.post(`/places/${id}/images`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.post(`/places/${id}/images`, formData);
     return response.data;
   },
   deleteImage: async (id: string, fileName: string) => {
@@ -289,33 +391,45 @@ export const activitiesApi = {
   create: async (data: any, imageFile?: File) => {
     const formData = new FormData();
     formData.append('name', data.name);
-    formData.append('description', data.description);
+    formData.append('description', data.description || '');
     formData.append('placeId', data.placeId);
     if (imageFile) {
       formData.append('image', imageFile);
+      console.log('Uploading new activity image file:', imageFile.name);
+    } else if (data.imageUrl && data.imageUrl.trim() !== '') {
+      const imageUrl = data.imageUrl.trim();
+      if (!imageUrl.includes('picsum.photos')) {
+        formData.append('imageUrl', imageUrl);
+      } else {
+        console.warn('Ignoring placeholder image URL (picsum.photos)');
+      }
     }
-    if (data.imageUrl) {
-      formData.append('imageUrl', data.imageUrl);
+    const response = await api.post('/activities', formData);
+    if (response.data?.imageUrl?.includes('picsum.photos')) {
+      console.error('⚠️ Backend returned placeholder image URL!');
     }
-    const response = await api.post('/activities', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
     return response.data;
   },
   update: async (id: string, data: any, imageFile?: File) => {
     const formData = new FormData();
     formData.append('name', data.name);
-    formData.append('description', data.description);
+    formData.append('description', data.description || '');
     formData.append('placeId', data.placeId);
     if (imageFile) {
       formData.append('image', imageFile);
+      console.log('Uploading new activity image file:', imageFile.name);
+    } else if (data.imageUrl && data.imageUrl.trim() !== '') {
+      const imageUrl = data.imageUrl.trim();
+      if (!imageUrl.includes('picsum.photos')) {
+        formData.append('imageUrl', imageUrl);
+      } else {
+        console.warn('Ignoring placeholder image URL (picsum.photos)');
+      }
     }
-    if (data.imageUrl) {
-      formData.append('imageUrl', data.imageUrl);
+    const response = await api.put(`/activities/${id}`, formData);
+    if (response.data?.imageUrl?.includes('picsum.photos')) {
+      console.error('⚠️ Backend returned placeholder image URL!');
     }
-    const response = await api.put(`/activities/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
     return response.data;
   },
   delete: async (id: string) => {
@@ -355,6 +469,134 @@ export const hotelsApi = {
     const response = await api.get(`/browse/hotels/${hotelId}/room-types`);
     return response.data;
   },
+  // Admin endpoints
+  create: async (data: any, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description || '');
+    formData.append('cityId', data.cityId);
+    formData.append('pricePerNight', data.pricePerNight.toString());
+    
+    if (imageFile) {
+      formData.append('image', imageFile);
+      console.log('Uploading new hotel image file:', imageFile.name);
+    } else if (data.imageUrl && data.imageUrl.trim() !== '') {
+      const imageUrl = data.imageUrl.trim();
+      if (!imageUrl.includes('picsum.photos')) {
+        formData.append('imageUrl', imageUrl);
+      } else {
+        console.warn('Ignoring placeholder image URL (picsum.photos)');
+      }
+    }
+    
+    // Room types - send as JSON string
+    if (data.roomTypes && Array.isArray(data.roomTypes) && data.roomTypes.length > 0) {
+      formData.append('roomTypes', JSON.stringify(data.roomTypes));
+    }
+    
+    const response = await api.post('/hotels', formData);
+    if (response.data?.imageUrl?.includes('picsum.photos')) {
+      console.error('⚠️ Backend returned placeholder image URL!');
+    }
+    return response.data;
+  },
+  update: async (id: string, data: any, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description || '');
+    formData.append('cityId', data.cityId);
+    formData.append('pricePerNight', data.pricePerNight.toString());
+    
+    if (imageFile) {
+      formData.append('image', imageFile);
+      console.log('Uploading new hotel image file:', imageFile.name);
+    } else if (data.imageUrl && data.imageUrl.trim() !== '') {
+      const imageUrl = data.imageUrl.trim();
+      if (!imageUrl.includes('picsum.photos')) {
+        formData.append('imageUrl', imageUrl);
+      } else {
+        console.warn('Ignoring placeholder image URL (picsum.photos)');
+      }
+    }
+    
+    // Room types - send as JSON string
+    if (data.roomTypes && Array.isArray(data.roomTypes) && data.roomTypes.length > 0) {
+      formData.append('roomTypes', JSON.stringify(data.roomTypes));
+    }
+    
+    const response = await api.patch(`/hotels/${id}`, formData);
+    if (response.data?.imageUrl?.includes('picsum.photos')) {
+      console.error('⚠️ Backend returned placeholder image URL!');
+    }
+    return response.data;
+  },
+  delete: async (id: string) => {
+    const response = await api.delete(`/hotels/${id}`);
+    return response.data;
+  },
+  // Room Types management
+  createRoomType: async (hotelId: string, data: {
+    name: string;
+    description?: string;
+    maxGuests: number;
+    pricePerNight: number;
+    capacity: number;
+    initialRoomCount?: number;
+    roomNumberPrefix?: string;
+  }) => {
+    const response = await api.post(`/hotels/${hotelId}/room-types`, data);
+    return response.data;
+  },
+  updateRoomType: async (hotelId: string, roomTypeId: string, data: {
+    name?: string;
+    description?: string;
+    maxGuests?: number;
+    pricePerNight?: number;
+    capacity?: number;
+  }) => {
+    const response = await api.patch(`/hotels/${hotelId}/room-types/${roomTypeId}`, data);
+    return response.data;
+  },
+  deleteRoomType: async (hotelId: string, roomTypeId: string) => {
+    const response = await api.delete(`/hotels/${hotelId}/room-types/${roomTypeId}`);
+    return response.data;
+  },
+  // Room management
+  getRoomsByRoomType: async (hotelId: string, roomTypeId: string) => {
+    const response = await api.get(`/hotels/${hotelId}/room-types/${roomTypeId}/rooms`);
+    return response.data;
+  },
+  createRoom: async (hotelId: string, roomTypeId: string, data: {
+    roomNumber?: string;
+    status?: 'AVAILABLE' | 'BOOKED' | 'MAINTENANCE';
+  }) => {
+    const response = await api.post(`/hotels/${hotelId}/room-types/${roomTypeId}/rooms`, data);
+    return response.data;
+  },
+  updateRoom: async (hotelId: string, roomTypeId: string, roomId: string, data: {
+    roomNumber?: string;
+    status?: 'AVAILABLE' | 'BOOKED' | 'MAINTENANCE';
+  }) => {
+    const response = await api.patch(`/hotels/${hotelId}/room-types/${roomTypeId}/rooms/${roomId}`, data);
+    return response.data;
+  },
+  deleteRoom: async (hotelId: string, roomTypeId: string, roomId: string) => {
+    const response = await api.delete(`/hotels/${hotelId}/room-types/${roomTypeId}/rooms/${roomId}`);
+    return response.data;
+  },
+  bulkAddRooms: async (hotelId: string, roomTypeId: string, data: {
+    count: number;
+    roomNumberPrefix?: string;
+  }) => {
+    const response = await api.post(`/hotels/${hotelId}/room-types/${roomTypeId}/rooms/bulk-add`, data);
+    return response.data;
+  },
+  bulkRemoveRooms: async (hotelId: string, roomTypeId: string, data: {
+    count: number;
+  }) => {
+    const response = await api.post(`/hotels/${hotelId}/room-types/${roomTypeId}/rooms/bulk-remove`, data);
+    return response.data;
+  },
 };
 
 // TRIPS
@@ -366,6 +608,83 @@ export const tripsApi = {
   },
   getOne: async (id: string) => {
     const response = await api.get(`/browse/trips/${id}`);
+    return response.data;
+  },
+  // Admin endpoints
+  create: async (data: any, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description || '');
+    formData.append('cityId', data.cityId);
+    formData.append('price', data.price.toString());
+    
+    if (data.hotelId) {
+      formData.append('hotelId', data.hotelId);
+    }
+    
+    // Activity IDs - send multiple fields with same name
+    if (data.activityIds && Array.isArray(data.activityIds)) {
+      data.activityIds.forEach((activityId: string) => {
+        formData.append('activityIds', activityId);
+      });
+    }
+    
+    if (imageFile) {
+      formData.append('image', imageFile);
+      console.log('Uploading new trip image file:', imageFile.name);
+    } else if (data.imageUrl && data.imageUrl.trim() !== '') {
+      const imageUrl = data.imageUrl.trim();
+      if (!imageUrl.includes('picsum.photos')) {
+        formData.append('imageUrl', imageUrl);
+      } else {
+        console.warn('Ignoring placeholder image URL (picsum.photos)');
+      }
+    }
+    
+    const response = await api.post('/trips', formData);
+    if (response.data?.imageUrl?.includes('picsum.photos')) {
+      console.error('⚠️ Backend returned placeholder image URL!');
+    }
+    return response.data;
+  },
+  update: async (id: string, data: any, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('description', data.description || '');
+    formData.append('cityId', data.cityId);
+    formData.append('price', data.price.toString());
+    
+    if (data.hotelId) {
+      formData.append('hotelId', data.hotelId);
+    }
+    
+    // Activity IDs - send multiple fields with same name
+    if (data.activityIds && Array.isArray(data.activityIds)) {
+      data.activityIds.forEach((activityId: string) => {
+        formData.append('activityIds', activityId);
+      });
+    }
+    
+    if (imageFile) {
+      formData.append('image', imageFile);
+      console.log('Uploading new trip image file:', imageFile.name);
+    } else if (data.imageUrl && data.imageUrl.trim() !== '') {
+      const imageUrl = data.imageUrl.trim();
+      if (!imageUrl.includes('picsum.photos')) {
+        formData.append('imageUrl', imageUrl);
+      } else {
+        console.warn('Ignoring placeholder image URL (picsum.photos)');
+      }
+    }
+    
+    const response = await api.patch(`/trips/${id}`, formData);
+    if (response.data?.imageUrl?.includes('picsum.photos')) {
+      console.error('⚠️ Backend returned placeholder image URL!');
+    }
+    return response.data;
+  },
+  delete: async (id: string) => {
+    const response = await api.delete(`/trips/${id}`);
     return response.data;
   },
 };
@@ -380,8 +699,12 @@ export const reservationsApi = {
     const response = await api.get('/reservations/me');
     return response.data;
   },
+  getMyReservation: async (id: string) => {
+    const response = await api.get(`/reservations/me/${id}`);
+    return response.data;
+  },
   create: async (data: {
-    roomTypeId: string;
+    roomId: string; // Changed from roomTypeId
     startDate: string;
     endDate: string;
     guests: number;

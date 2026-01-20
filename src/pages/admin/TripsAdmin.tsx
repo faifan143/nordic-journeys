@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -38,33 +39,36 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { usePagination } from '@/hooks/use-pagination';
-import { citiesApi, countriesApi } from '@/lib/api';
-import { City, Country } from '@/types';
+import { tripsApi, citiesApi, hotelsApi, activitiesApi } from '@/lib/api';
+import { Trip, City, Hotel, Activity } from '@/types';
 import { toast } from 'sonner';
 
-export default function CitiesAdmin() {
+export default function TripsAdmin() {
   const [open, setOpen] = useState(false);
-  const [editingCity, setEditingCity] = useState<City | null>(null);
+  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    countryId: '',
+    cityId: '',
+    hotelId: '',
+    price: '',
+    activityIds: [] as string[],
     imageUrl: '',
   });
 
   const queryClient = useQueryClient();
 
-  const { data: cities, isLoading } = useQuery<City[]>({
-    queryKey: ['cities'],
-    queryFn: () => citiesApi.getAll(),
+  const { data: trips, isLoading } = useQuery<Trip[]>({
+    queryKey: ['trips'],
+    queryFn: () => tripsApi.getAll(),
   });
 
   const {
     currentPage,
     totalPages,
-    paginatedItems: paginatedCities,
+    paginatedItems: paginatedTrips,
     nextPage,
     previousPage,
     goToPage,
@@ -73,18 +77,32 @@ export default function CitiesAdmin() {
     startIndex,
     endIndex,
     totalItems,
-  } = usePagination(cities || [], 10);
+  } = usePagination(trips || [], 10);
 
-  const { data: countries } = useQuery<Country[]>({
-    queryKey: ['countries'],
-    queryFn: countriesApi.getAll,
+  const { data: cities } = useQuery<City[]>({
+    queryKey: ['cities'],
+    queryFn: () => citiesApi.getAll(),
   });
+
+  const { data: hotels } = useQuery<Hotel[]>({
+    queryKey: ['hotels'],
+    queryFn: () => hotelsApi.getAll(),
+  });
+
+  const { data: activities } = useQuery<Activity[]>({
+    queryKey: ['activities'],
+    queryFn: () => activitiesApi.getAll(),
+  });
+
+  // Filter hotels by selected city
+  const availableHotels = formData.cityId
+    ? hotels?.filter((hotel) => hotel.cityId === formData.cityId) || []
+    : [];
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const result = await citiesApi.create(data, imageFile || undefined);
+      const result = await tripsApi.create(data, imageFile || undefined);
       
-      // Validate: If we uploaded a file, backend should return a real uploaded image URL
       if (imageFile && result?.imageUrl?.includes('picsum.photos')) {
         console.error('Backend returned placeholder URL after file upload!');
         toast.error('Image uploaded but backend returned placeholder URL. Please check backend logs.');
@@ -92,124 +110,95 @@ export default function CitiesAdmin() {
       
       return result;
     },
-    onSuccess: (newCity) => {
-      // Invalidate queries to refetch with the new city
-      queryClient.invalidateQueries({ queryKey: ['cities'] });
-      queryClient.invalidateQueries({ queryKey: ['city', newCity.id] });
+    onSuccess: (newTrip) => {
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      queryClient.invalidateQueries({ queryKey: ['trip', newTrip.id] });
       
-      // Check if the response has a valid image URL
-      if (imageFile && newCity?.imageUrl && !newCity.imageUrl.includes('picsum.photos')) {
-        toast.success('City created successfully with image');
+      if (imageFile && newTrip?.imageUrl && !newTrip.imageUrl.includes('picsum.photos')) {
+        toast.success('Trip created successfully with image');
       } else if (imageFile) {
-        toast.warning('City created, but please verify the image was saved correctly');
+        toast.warning('Trip created, but please verify the image was saved correctly');
       } else {
-        toast.success('City created successfully');
+        toast.success('Trip created successfully');
       }
       
       handleClose();
     },
     onError: (error: any) => {
-      console.error('Failed to create city:', error);
+      console.error('Failed to create trip:', error);
       console.error('Error response:', error?.response?.data);
-      toast.error(error?.response?.data?.message || 'Failed to create city');
+      toast.error(error?.response?.data?.message || 'Failed to create trip');
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      console.log('=== CITY UPDATE MUTATION START ===');
-      console.log('City ID:', id);
-      console.log('Form data:', data);
-      console.log('Image file:', imageFile);
-      console.log('Image file details:', imageFile ? {
-        name: imageFile.name,
-        type: imageFile.type,
-        size: imageFile.size,
-        lastModified: imageFile.lastModified
-      } : 'NO FILE');
+      const result = await tripsApi.update(id, data, imageFile || undefined);
       
-      if (!imageFile) {
-        console.warn('⚠️ No image file provided! Only updating text fields.');
-      }
-      
-      const result = await citiesApi.update(id, data, imageFile || undefined);
-      
-      console.log('Backend response:', result);
-      console.log('Backend imageUrl:', result?.imageUrl);
-      
-      // Validate: If we uploaded a file, backend should return a real uploaded image URL
       if (imageFile && result?.imageUrl?.includes('picsum.photos')) {
-        console.error('❌ Backend returned placeholder URL after file upload!');
-        console.error('Expected: Real uploaded image URL from storage');
-        console.error('Got:', result.imageUrl);
+        console.error('Backend returned placeholder URL after file upload!');
         toast.error('Image uploaded but backend returned placeholder URL. Please check backend logs.');
-      } else if (imageFile && result?.imageUrl && !result.imageUrl.includes('picsum.photos')) {
-        console.log('✅ Backend returned valid image URL:', result.imageUrl);
       }
       
-      console.log('=== CITY UPDATE MUTATION END ===');
       return result;
     },
-    onSuccess: (updatedCity) => {
-      // Update the cache with the returned city data (which should include the new imageUrl)
-      queryClient.setQueryData(['cities'], (old: City[] | undefined) => {
+    onSuccess: (updatedTrip) => {
+      queryClient.setQueryData(['trips'], (old: Trip[] | undefined) => {
         if (!old) return old;
-        return old.map((city) => (city.id === updatedCity.id ? updatedCity : city));
+        return old.map((trip) => (trip.id === updatedTrip.id ? updatedTrip : trip));
       });
-      // Also invalidate to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ['cities'] });
-      queryClient.invalidateQueries({ queryKey: ['city', updatedCity.id] });
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      queryClient.invalidateQueries({ queryKey: ['trip', updatedTrip.id] });
       
-      // Check if the response has a valid image URL
-      if (imageFile && updatedCity?.imageUrl && !updatedCity.imageUrl.includes('picsum.photos')) {
-        toast.success('City updated successfully with new image');
+      if (imageFile && updatedTrip?.imageUrl && !updatedTrip.imageUrl.includes('picsum.photos')) {
+        toast.success('Trip updated successfully with new image');
       } else if (imageFile) {
-        toast.warning('City updated, but please verify the image was saved correctly');
+        toast.warning('Trip updated, but please verify the image was saved correctly');
       } else {
-        toast.success('City updated successfully');
+        toast.success('Trip updated successfully');
       }
       
       handleClose();
     },
     onError: (error: any) => {
-      console.error('Failed to update city:', error);
+      console.error('Failed to update trip:', error);
       console.error('Error response:', error?.response?.data);
-      toast.error(error?.response?.data?.message || 'Failed to update city');
+      toast.error(error?.response?.data?.message || 'Failed to update trip');
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: citiesApi.delete,
+    mutationFn: tripsApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cities'] });
-      toast.success('City deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      toast.success('Trip deleted successfully');
     },
-    onError: () => toast.error('Failed to delete city'),
+    onError: () => toast.error('Failed to delete trip'),
   });
 
   const handleClose = () => {
     setOpen(false);
-    setEditingCity(null);
+    setEditingTrip(null);
     setImageFile(null);
     setImagePreview(null);
-    setFormData({ name: '', description: '', countryId: '', imageUrl: '' });
+    setFormData({ name: '', description: '', cityId: '', hotelId: '', price: '', activityIds: [], imageUrl: '' });
   };
 
-  const handleEdit = (city: City) => {
-    setEditingCity(city);
+  const handleEdit = (trip: Trip) => {
+    setEditingTrip(trip);
     setImageFile(null);
     
-    // Filter out placeholder URLs (picsum.photos) - treat them as no image
-    // Only show preview if it's a real uploaded image URL
-    const isValidImageUrl = city.imageUrl && !city.imageUrl.includes('picsum.photos');
-    setImagePreview(isValidImageUrl ? city.imageUrl : null);
+    const isValidImageUrl = trip.imageUrl && !trip.imageUrl.includes('picsum.photos');
+    setImagePreview(isValidImageUrl ? trip.imageUrl : null);
     
     setFormData({
-      name: city.name,
-      description: city.description,
-      countryId: city.countryId,
-      // Only include imageUrl if it's a real uploaded image (not placeholder)
-      imageUrl: isValidImageUrl ? city.imageUrl : '',
+      name: trip.name,
+      description: trip.description || '',
+      cityId: trip.cityId,
+      hotelId: trip.hotelId || '',
+      price: trip.price.toString(),
+      activityIds: trip.activities?.map((a) => a.id) || [],
+      imageUrl: isValidImageUrl ? trip.imageUrl : '',
     });
     setOpen(true);
   };
@@ -218,7 +207,6 @@ export default function CitiesAdmin() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImageFile(file);
-      // Clear the imageUrl from formData when uploading a new file
       setFormData((prev) => ({ ...prev, imageUrl: '' }));
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -228,24 +216,31 @@ export default function CitiesAdmin() {
     }
   };
 
+  const handleActivityToggle = (activityId: string) => {
+    setFormData((prev) => {
+      const isSelected = prev.activityIds.includes(activityId);
+      return {
+        ...prev,
+        activityIds: isSelected
+          ? prev.activityIds.filter((id) => id !== activityId)
+          : [...prev.activityIds, activityId],
+      };
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('=== FORM SUBMIT ===');
-    console.log('Editing city:', editingCity?.id);
-    console.log('Form data:', formData);
-    console.log('Image file state:', imageFile);
-    console.log('Image file details:', imageFile ? {
-      name: imageFile.name,
-      type: imageFile.type,
-      size: imageFile.size
-    } : 'NO FILE');
+    const submitData = {
+      ...formData,
+      price: parseFloat(formData.price),
+      hotelId: formData.hotelId && formData.hotelId !== 'none' ? formData.hotelId : undefined,
+      activityIds: formData.activityIds.length > 0 ? formData.activityIds : undefined,
+    };
     
-    if (editingCity) {
-      console.log('Updating city:', editingCity.id);
-      updateMutation.mutate({ id: editingCity.id, data: formData });
+    if (editingTrip) {
+      updateMutation.mutate({ id: editingTrip.id, data: submitData });
     } else {
-      console.log('Creating new city');
-      createMutation.mutate(formData);
+      createMutation.mutate(submitData);
     }
   };
 
@@ -253,20 +248,20 @@ export default function CitiesAdmin() {
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="mb-2">Cities</h1>
-          <p className="text-muted-foreground">Manage all cities</p>
+          <h1 className="mb-2">Trips</h1>
+          <p className="text-muted-foreground">Manage all trips</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="lg">
               <Plus className="w-5 h-5 mr-2" />
-              Add City
+              Add Trip
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingCity ? 'Edit City' : 'Create City'}
+                {editingTrip ? 'Edit Trip' : 'Create Trip'}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -282,25 +277,61 @@ export default function CitiesAdmin() {
                 />
               </div>
               <div>
-                <Label htmlFor="countryId">Country</Label>
+                <Label htmlFor="cityId">City</Label>
                 <Select
-                  value={formData.countryId}
+                  value={formData.cityId}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, countryId: value })
+                    setFormData({ ...formData, cityId: value, hotelId: '' })
                   }
                   required
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
+                    <SelectValue placeholder="Select city" />
                   </SelectTrigger>
                   <SelectContent>
-                    {countries?.map((country) => (
-                      <SelectItem key={country.id} value={country.id}>
-                        {country.name}
+                    {cities?.map((city) => (
+                      <SelectItem key={city.id} value={city.id}>
+                        {city.name} ({city.country?.name})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label htmlFor="hotelId">Hotel (optional)</Label>
+                <Select
+                  value={formData.hotelId || undefined}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, hotelId: value === 'none' ? '' : value })
+                  }
+                  disabled={!formData.cityId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={formData.cityId ? "Select hotel" : "Select a city first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {availableHotels.map((hotel) => (
+                      <SelectItem key={hotel.id} value={hotel.id}>
+                        {hotel.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="price">Price</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.price}
+                  onChange={(e) =>
+                    setFormData({ ...formData, price: e.target.value })
+                  }
+                  required
+                />
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>
@@ -311,8 +342,36 @@ export default function CitiesAdmin() {
                     setFormData({ ...formData, description: e.target.value })
                   }
                   rows={4}
-                  required
                 />
+              </div>
+              <div>
+                <Label>Activities (optional)</Label>
+                <div className="mt-2 border rounded-lg p-4 max-h-48 overflow-y-auto space-y-2">
+                  {activities && activities.length > 0 ? (
+                    activities.map((activity) => (
+                      <div key={activity.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`activity-${activity.id}`}
+                          checked={formData.activityIds.includes(activity.id)}
+                          onCheckedChange={() => handleActivityToggle(activity.id)}
+                        />
+                        <label
+                          htmlFor={`activity-${activity.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
+                        >
+                          {activity.name}
+                          {activity.place && (
+                            <span className="text-muted-foreground ml-2">
+                              ({activity.place.name})
+                            </span>
+                          )}
+                        </label>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No activities available</p>
+                  )}
+                </div>
               </div>
               <div>
                 <Label htmlFor="image">Image (optional)</Label>
@@ -342,10 +401,10 @@ export default function CitiesAdmin() {
                     </button>
                   </div>
                 )}
-                {!imagePreview && editingCity?.imageUrl && (
+                {!imagePreview && editingTrip?.imageUrl && !editingTrip.imageUrl.includes('picsum.photos') && (
                   <div className="mt-3 relative inline-block">
                     <img
-                      src={editingCity.imageUrl}
+                      src={editingTrip.imageUrl}
                       alt="Current"
                       className="w-32 h-32 object-cover rounded-lg border"
                     />
@@ -358,7 +417,7 @@ export default function CitiesAdmin() {
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">
-                  {editingCity ? 'Update' : 'Create'}
+                  {editingTrip ? 'Update' : 'Create'}
                 </Button>
               </div>
             </form>
@@ -376,32 +435,42 @@ export default function CitiesAdmin() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Country</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead>City</TableHead>
+                <TableHead>Hotel</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Activities</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedCities.map((city) => (
-                <TableRow key={city.id}>
-                  <TableCell className="font-medium">{city.name}</TableCell>
-                  <TableCell>{city.country?.name || 'N/A'}</TableCell>
-                  <TableCell className="max-w-md truncate">
-                    {city.description}
+              {paginatedTrips.map((trip) => (
+                <TableRow key={trip.id}>
+                  <TableCell className="font-medium">{trip.name}</TableCell>
+                  <TableCell>{trip.city?.name || 'N/A'}</TableCell>
+                  <TableCell>{trip.hotel?.name || 'N/A'}</TableCell>
+                  <TableCell>${trip.price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {trip.activities && trip.activities.length > 0 ? (
+                      <span className="text-sm text-muted-foreground">
+                        {trip.activities.length} activity{trip.activities.length !== 1 ? 'ies' : ''}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">None</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleEdit(city)}
+                        onClick={() => handleEdit(trip)}
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => deleteMutation.mutate(city.id)}
+                        onClick={() => deleteMutation.mutate(trip.id)}
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
@@ -414,7 +483,7 @@ export default function CitiesAdmin() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t">
               <div className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to {endIndex} of {totalItems} cities
+                Showing {startIndex + 1} to {endIndex} of {totalItems} trips
               </div>
               <Pagination>
                 <PaginationContent>
@@ -465,3 +534,4 @@ export default function CitiesAdmin() {
     </AdminLayout>
   );
 }
+

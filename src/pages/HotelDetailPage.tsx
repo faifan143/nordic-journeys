@@ -7,6 +7,7 @@ import { Hotel as HotelType } from '@/types';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
 import { HotelReservationForm } from '@/components/HotelReservationForm';
 import { useAuthStore } from '@/store/authStore';
+import { SafeImage } from '@/components/ui/safe-image';
 
 export default function HotelDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -48,9 +49,10 @@ export default function HotelDetailPage() {
             {/* Hotel Header */}
             <div className="mb-12">
               <div className="aspect-[21/9] rounded-3xl overflow-hidden mb-8 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
-                <img
-                  src={hotel?.imageUrl || `https://picsum.photos/seed/${id}/1920/820`}
-                  alt={hotel?.name}
+                <SafeImage
+                  src={hotel?.imageUrl}
+                  fallbackSrc={`https://picsum.photos/seed/${id}/1920/820`}
+                  alt={hotel?.name || 'Hotel'}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -84,11 +86,12 @@ export default function HotelDetailPage() {
                 {hotel?.description}
               </p>
 
-              {roomTypes && roomTypes.length > 0 && (
+              {isAuthenticated && roomTypes && roomTypes.length > 0 && (
                 <div className="mt-6">
                   <HotelReservationForm
                     roomTypes={roomTypes}
                     hotelName={hotel?.name || ''}
+                    hotelId={hotel?.id}
                   />
                 </div>
               )}
@@ -99,39 +102,67 @@ export default function HotelDetailPage() {
               <div>
                 <h2 className="mb-8">Available Room Types</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {roomTypes.map((roomType: any) => (
-                    <div key={roomType.id} className="premium-card">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-2xl mb-2">{roomType.name}</h3>
-                          {roomType.description && (
-                            <p className="text-muted-foreground mb-4">
-                              {roomType.description}
+                  {roomTypes
+                    .filter((roomType: any) => {
+                      // Only show room types with available rooms
+                      // If availableRoomsCount is explicitly set (including 0), use it
+                      // Otherwise fall back to capacity
+                      if (roomType.availableRoomsCount !== undefined) {
+                        return roomType.availableRoomsCount > 0;
+                      }
+                      return (roomType.capacity ?? 0) > 0;
+                    })
+                    .map((roomType: any) => {
+                      const availableCount = roomType.availableRoomsCount ?? roomType.capacity ?? 0;
+                      return (
+                        <div key={roomType.id} className="premium-card">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <h3 className="text-2xl mb-2">{roomType.name}</h3>
+                              {roomType.description && (
+                                <p className="text-muted-foreground mb-4">
+                                  {roomType.description}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right ml-4">
+                              <div className="text-2xl font-bold text-primary">
+                                ${roomType.pricePerNight}
+                              </div>
+                              <div className="text-sm text-muted-foreground">per night</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4" />
+                              <span>Up to {roomType.maxGuests} guests</span>
+                            </div>
+                            {availableCount > 0 ? (
+                              <span>{availableCount} rooms available</span>
+                            ) : (
+                              <span className="text-destructive">No rooms available</span>
+                            )}
+                          </div>
+                          {isAuthenticated && availableCount > 0 && (
+                            <HotelReservationForm
+                              roomTypes={[roomType]}
+                              hotelName={hotel?.name || ''}
+                              hotelId={hotel?.id}
+                            />
+                          )}
+                          {!isAuthenticated && (
+                            <p className="text-sm text-muted-foreground italic">
+                              Please log in to make a reservation
+                            </p>
+                          )}
+                          {isAuthenticated && availableCount === 0 && (
+                            <p className="text-sm text-destructive">
+                              No rooms available for this room type
                             </p>
                           )}
                         </div>
-                        <div className="text-right ml-4">
-                          <div className="text-2xl font-bold text-primary">
-                            ${roomType.pricePerNight}
-                          </div>
-                          <div className="text-sm text-muted-foreground">per night</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          <span>Up to {roomType.maxGuests} guests</span>
-                        </div>
-                        {roomType.capacity && (
-                          <span>{roomType.capacity} rooms available</span>
-                        )}
-                      </div>
-                      <HotelReservationForm
-                        roomTypes={[roomType]}
-                        hotelName={hotel?.name || ''}
-                      />
-                    </div>
-                  ))}
+                      );
+                    })}
                 </div>
               </div>
             ) : roomTypesLoading ? (

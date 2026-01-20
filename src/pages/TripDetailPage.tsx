@@ -7,6 +7,7 @@ import { Trip } from '@/types';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
 import { TripReservationForm } from '@/components/TripReservationForm';
 import { useAuthStore } from '@/store/authStore';
+import { SafeImage } from '@/components/ui/safe-image';
 
 export default function TripDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -39,9 +40,10 @@ export default function TripDetailPage() {
             {/* Trip Header */}
             <div className="mb-12">
               <div className="aspect-[21/9] rounded-3xl overflow-hidden mb-8 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
-                <img
-                  src={trip?.imageUrl || `https://picsum.photos/seed/${id}/1920/820`}
-                  alt={trip?.name}
+                <SafeImage
+                  src={trip?.imageUrl}
+                  fallbackSrc={`https://picsum.photos/seed/${id}/1920/820`}
+                  alt={trip?.name || 'Trip'}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -99,15 +101,13 @@ export default function TripDetailPage() {
                       key={activity.id}
                       className="premium-card"
                     >
-                      {activity.imageUrl && (
-                        <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4">
-                          <img
-                            src={activity.imageUrl}
-                            alt={activity.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
+                      <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-4">
+                        <SafeImage
+                          src={activity.imageUrl}
+                          alt={activity.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                       <h3 className="text-2xl mb-3">
                         {activity.name}
                       </h3>

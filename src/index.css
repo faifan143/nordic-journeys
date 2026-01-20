@@ -142,7 +142,7 @@
 @layer components {
   /* Premium card with soft shadow */
   .premium-card {
-    @apply bg-card rounded-[24px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-8 transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)];
+    @apply bg-card rounded-[20px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-4 transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)];
   }
 
   /* Compact premium card for admin pages */

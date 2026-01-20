@@ -43,7 +43,7 @@ export interface Place {
   description: string;
   cityId: string;
   city?: City;
-  images: string[];
+  imageUrls: string[];
   categories?: Category[];
   themes?: Theme[];
   createdAt: string;
@@ -61,14 +61,41 @@ export interface Activity {
   updatedAt: string;
 }
 
+export enum RoomStatus {
+  AVAILABLE = 'AVAILABLE',
+  BOOKED = 'BOOKED',
+  MAINTENANCE = 'MAINTENANCE',
+}
+
+export enum ReservationStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface Room {
+  id: string;
+  roomTypeId: string;
+  roomType?: RoomType;
+  roomNumber?: string;
+  status: RoomStatus;
+  reservations?: Reservation[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface RoomType {
   id: string;
   hotelId: string;
+  hotel?: Hotel;
   name: string;
   description?: string;
   maxGuests: number;
   pricePerNight: number;
   capacity: number;
+  rooms?: Room[]; // Only for admins
+  availableRoomsCount?: number; // Only for regular users
+  reservations?: Reservation[];
   createdAt: string;
   updatedAt: string;
 }
@@ -105,13 +132,15 @@ export interface Reservation {
   id: string;
   userId: string;
   user?: User;
-  roomTypeId: string;
-  roomType: RoomType;
+  roomId: string; // NEW: Now required
+  room?: Room; // NEW: Room details included
+  roomTypeId?: string; // Still included for reference
+  roomType?: RoomType;
   startDate: string;
   endDate: string;
   guests: number;
   totalPrice: number;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+  status: ReservationStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -123,7 +152,7 @@ export interface TripReservation {
   tripId: string;
   trip: Trip;
   guests: number;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+  status: ReservationStatus;
   createdAt: string;
   updatedAt: string;
 }

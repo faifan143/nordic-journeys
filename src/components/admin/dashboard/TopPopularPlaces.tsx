@@ -9,7 +9,7 @@ function calculatePopularity(place: Place): number {
   // Mock popularity: combine name length, description length, and number of images
   const baseScore = (place.name?.length || 0) * 2;
   const descScore = (place.description?.length || 0) / 10;
-  const imageScore = (place.images?.length || 0) * 5;
+  const imageScore = (place.imageUrls?.length || 0) * 5;
   return Math.round(baseScore + descScore + imageScore);
 }
 

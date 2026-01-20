@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Globe, Building2, MapPinned, Tag, Palette, Upload } from 'lucide-react';
+import { Globe, Building2, MapPinned, Tag, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const actions = [
@@ -32,12 +32,6 @@ const actions = [
     icon: Palette,
     path: '/admin/themes',
     color: 'bg-pink-500 hover:bg-pink-600',
-  },
-  {
-    label: 'Upload Images',
-    icon: Upload,
-    path: '/admin/uploads',
-    color: 'bg-indigo-500 hover:bg-indigo-600',
   },
 ];
 

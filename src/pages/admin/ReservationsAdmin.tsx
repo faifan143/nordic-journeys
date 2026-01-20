@@ -105,7 +105,7 @@ function HotelReservationsTab() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
                 <h3 className="text-xl font-semibold">
-                  {reservation.roomType.hotel?.name || 'Hotel'}
+                  {reservation.roomType?.hotel?.name || 'Hotel'}
                 </h3>
                 <Badge className={`${getStatusColor(reservation.status)} text-white`}>
                   {reservation.status}
@@ -114,7 +114,14 @@ function HotelReservationsTab() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
                 <div>
                   <p className="text-sm text-muted-foreground">Room Type</p>
-                  <p className="font-medium">{reservation.roomType.name}</p>
+                  <p className="font-medium">
+                    {reservation.roomType?.name || 'N/A'}
+                    {reservation.room && (
+                      <span className="block text-xs text-muted-foreground">
+                        Room {reservation.room.roomNumber || reservation.room.id.slice(-6)}
+                      </span>
+                    )}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Guest</p>

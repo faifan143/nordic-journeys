@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { reservationsApi } from '@/lib/api';
+import { reservationsApi, hotelsApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,11 +17,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { RoomType } from '@/types';
+import { RoomType, Room, RoomStatus } from '@/types';
 import { useAuthStore } from '@/store/authStore';
 
 const reservationSchema = z.object({
   roomTypeId: z.string().min(1, 'Please select a room type'),
+  roomId: z.string().min(1, 'Please select a room'),
   startDate: z.string().min(1, 'Start date is required'),
   endDate: z.string().min(1, 'End date is required'),
   guests: z.number().min(1, 'At least 1 guest is required'),
@@ -39,9 +40,10 @@ type ReservationForm = z.infer<typeof reservationSchema>;
 interface HotelReservationFormProps {
   roomTypes: RoomType[];
   hotelName: string;
+  hotelId?: string; // Added to fetch rooms
 }
 
-export function HotelReservationForm({ roomTypes, hotelName }: HotelReservationFormProps) {
+export function HotelReservationForm({ roomTypes, hotelName, hotelId }: HotelReservationFormProps) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuthStore();
@@ -53,6 +55,7 @@ export function HotelReservationForm({ roomTypes, hotelName }: HotelReservationF
     formState: { errors },
     reset,
     watch,
+    setValue,
   } = useForm<ReservationForm>({
     resolver: zodResolver(reservationSchema),
     defaultValues: {
@@ -65,6 +68,35 @@ export function HotelReservationForm({ roomTypes, hotelName }: HotelReservationF
   const startDate = watch('startDate');
   const endDate = watch('endDate');
   const guests = watch('guests') || 1;
+
+  // Fetch available rooms when room type is selected
+  const { data: rooms, isLoading: roomsLoading } = useQuery<Room[]>({
+    queryKey: ['rooms', hotelId, selectedRoomTypeId],
+    queryFn: () => {
+      if (!hotelId || !selectedRoomTypeId) return Promise.resolve([]);
+      return hotelsApi.getRoomsByRoomType(hotelId, selectedRoomTypeId);
+    },
+    enabled: !!hotelId && !!selectedRoomTypeId,
+  });
+
+  // Filter available rooms
+  const availableRooms = rooms?.filter((room) => room.status === RoomStatus.AVAILABLE) || [];
+
+  // Check if any of the room types passed to this component have available rooms
+  const hasAvailableRooms = roomTypes.some(rt => {
+    if (rt.availableRoomsCount !== undefined) {
+      return rt.availableRoomsCount > 0;
+    }
+    // Fallback to capacity if availableRoomsCount is not provided
+    return (rt.capacity ?? 0) > 0;
+  });
+
+  // Check if the selected room type specifically has available rooms
+  const selectedRoomTypeHasAvailableRooms = selectedRoomType ? (
+    selectedRoomType.availableRoomsCount !== undefined 
+      ? selectedRoomType.availableRoomsCount > 0 
+      : (selectedRoomType.capacity ?? 0) > 0
+  ) : false;
 
   const calculateTotal = () => {
     if (!selectedRoomType || !startDate || !endDate) return 0;
@@ -95,17 +127,33 @@ export function HotelReservationForm({ roomTypes, hotelName }: HotelReservationF
       return;
     }
     reservationMutation.mutate({
-      roomTypeId: data.roomTypeId,
+      roomId: data.roomId, // Changed from roomTypeId
       startDate: data.startDate,
       endDate: data.endDate,
       guests: data.guests,
     });
   };
 
+  // Reset roomId when room type changes
+  const handleRoomTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setValue('roomTypeId', e.target.value);
+    setValue('roomId', ''); // Reset room selection
+  };
+
+  // Don't show button if user is not authenticated or no rooms available
+  if (!isAuthenticated || !hasAvailableRooms) {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Reserve Now</Button>
+        <Button 
+          disabled={!selectedRoomTypeHasAvailableRooms && !!selectedRoomTypeId}
+          title={!selectedRoomTypeHasAvailableRooms && !!selectedRoomTypeId ? 'No rooms available for this room type' : ''}
+        >
+          Reserve Now
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -121,12 +169,16 @@ export function HotelReservationForm({ roomTypes, hotelName }: HotelReservationF
             <select
               id="roomTypeId"
               {...register('roomTypeId')}
+              onChange={handleRoomTypeChange}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">Select a room type</option>
               {roomTypes.map((roomType) => (
                 <option key={roomType.id} value={roomType.id}>
                   {roomType.name} - ${roomType.pricePerNight}/night (Max {roomType.maxGuests} guests)
+                  {roomType.availableRoomsCount !== undefined && (
+                    <> - {roomType.availableRoomsCount} available</>
+                  )}
                 </option>
               ))}
             </select>
@@ -134,6 +186,40 @@ export function HotelReservationForm({ roomTypes, hotelName }: HotelReservationF
               <p className="text-sm text-destructive">{errors.roomTypeId.message}</p>
             )}
           </div>
+
+              {selectedRoomTypeId && (
+            <div className="space-y-2">
+              <Label htmlFor="roomId">Select Room</Label>
+              {roomsLoading ? (
+                <p className="text-sm text-muted-foreground">Loading available rooms...</p>
+              ) : availableRooms.length > 0 ? (
+                <select
+                  id="roomId"
+                  {...register('roomId')}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Select a room</option>
+                  {availableRooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.roomNumber || `Room ${room.id.slice(-6)}`} - {room.status}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                  <p className="text-sm text-destructive font-medium">
+                    No available rooms for this room type.
+                  </p>
+                  <p className="text-xs text-destructive/80 mt-1">
+                    Please select another room type or check back later.
+                  </p>
+                </div>
+              )}
+              {errors.roomId && (
+                <p className="text-sm text-destructive">{errors.roomId.message}</p>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

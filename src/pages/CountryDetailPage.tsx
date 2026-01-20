@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { countriesApi, citiesApi } from '@/lib/api';
 import { Country, City } from '@/types';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
+import { SafeImage } from '@/components/ui/safe-image';
 
 export default function CountryDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -42,9 +43,10 @@ export default function CountryDetailPage() {
             {/* Country Hero */}
             <div className="mb-16">
               <div className="aspect-[21/9] rounded-3xl overflow-hidden mb-8 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
-                <img
-                  src={country?.imageUrl || `https://picsum.photos/seed/${id}/1920/820`}
-                  alt={country?.name}
+                <SafeImage
+                  src={country?.imageUrl}
+                  fallbackSrc={`https://picsum.photos/seed/${id}/1920/820`}
+                  alt={country?.name || 'Country'}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -58,30 +60,31 @@ export default function CountryDetailPage() {
             <div>
               <h2 className="mb-8">Cities in {country?.name}</h2>
               {citiesLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="premium-card h-80 animate-pulse bg-muted" />
+                    <div key={i} className="premium-card h-56 animate-pulse bg-muted" />
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {cities?.map((city) => (
                     <Link
                       key={city.id}
                       to={`/cities/${city.id}`}
                       className="premium-card hover-lift group overflow-hidden"
                     >
-                      <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
-                        <img
-                          src={city.imageUrl || `https://picsum.photos/seed/${city.id}/800/600`}
+                      <div className="aspect-[16/9] rounded-xl overflow-hidden mb-3">
+                        <SafeImage
+                          src={city.imageUrl}
+                          fallbackSrc={`https://picsum.photos/seed/${city.id}/800/600`}
                           alt={city.name}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       </div>
-                      <h3 className="text-2xl mb-3 group-hover:text-primary transition-colors">
+                      <h3 className="text-lg mb-1.5 group-hover:text-primary transition-colors">
                         {city.name}
                       </h3>
-                      <p className="text-muted-foreground line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {city.description}
                       </p>
                     </Link>

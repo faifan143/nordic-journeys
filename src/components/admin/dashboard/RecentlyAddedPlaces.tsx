@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { placesApi } from '@/lib/api';
 import { Place } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
+import { SafeImage } from '@/components/ui/safe-image';
 
 function formatDate(dateString: string): string {
   try {
@@ -63,14 +64,12 @@ export function RecentlyAddedPlaces() {
             }`}
           >
             <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-              {place.images && place.images.length > 0 ? (
-                <img
-                  src={place.images[0]}
+              {place.imageUrls && place.imageUrls.length > 0 ? (
+                <SafeImage
+                  src={place.imageUrls[0]}
+                  fallbackSrc={`https://picsum.photos/seed/${place.id}/64/64`}
                   alt={place.name}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${place.id}/64/64`;
-                  }}
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold text-lg">

@@ -5,7 +5,6 @@ import { dashboardApi } from '@/lib/api';
 import { AdminDashboard as AdminDashboardType } from '@/types';
 import { QuickActions } from '@/components/admin/dashboard/QuickActions';
 import { RecentlyAddedPlaces } from '@/components/admin/dashboard/RecentlyAddedPlaces';
-import { TopPopularPlaces } from '@/components/admin/dashboard/TopPopularPlaces';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminDashboard() {
@@ -170,10 +169,6 @@ export default function AdminDashboard() {
 
       <div className="mt-6">
         <RecentlyAddedPlaces />
-      </div>
-
-      <div className="mt-6">
-        <TopPopularPlaces />
       </div>
     </AdminLayout>
   );

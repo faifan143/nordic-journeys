@@ -95,13 +95,6 @@ export default function LoginPage() {
             </Button>
           </form>
         </div>
-
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          Don't have an account?{' '}
-          <Link to="/" className="text-primary hover:underline">
-            Contact admin
-          </Link>
-        </p>
       </div>
     </div>
   );

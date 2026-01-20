@@ -102,15 +102,12 @@ export default function PlacesAdmin() {
       categoryIds: string[];
       themeIds: string[];
     }) => {
-      const place = await placesApi.create(placeData, imageFiles.length > 0 ? imageFiles : undefined);
-      // Update categories and themes if selected
-      if (categoryIds.length > 0) {
-        await placesApi.updateCategories(place.id, categoryIds);
-      }
-      if (themeIds.length > 0) {
-        await placesApi.updateThemes(place.id, themeIds);
-      }
-      return place;
+      const placeDataWithRelations = {
+        ...placeData,
+        categoryIds,
+        themeIds,
+      };
+      return await placesApi.create(placeDataWithRelations, imageFiles.length > 0 ? imageFiles : undefined);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['places'] });
@@ -132,15 +129,12 @@ export default function PlacesAdmin() {
       categoryIds: string[];
       themeIds: string[];
     }) => {
-      const place = await placesApi.update(id, placeData, imageFiles.length > 0 ? imageFiles : undefined);
-      // Update categories and themes
-      if (categoryIds.length > 0) {
-        await placesApi.updateCategories(id, categoryIds);
-      }
-      if (themeIds.length > 0) {
-        await placesApi.updateThemes(id, themeIds);
-      }
-      return place;
+      const placeDataWithRelations = {
+        ...placeData,
+        categoryIds,
+        themeIds,
+      };
+      return await placesApi.update(id, placeDataWithRelations, imageFiles.length > 0 ? imageFiles : undefined);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['places'] });
@@ -176,7 +170,7 @@ export default function PlacesAdmin() {
   const handleEdit = (place: Place) => {
     setEditingPlace(place);
     setImageFiles([]);
-    setImagePreviews(place.images || []);
+    setImagePreviews(place.imageUrls || []);
     setFormData({
       name: place.name,
       description: place.description,
@@ -365,7 +359,7 @@ export default function PlacesAdmin() {
                 {imageFiles.length >= 10 && (
                   <p className="text-xs text-muted-foreground mt-1">Maximum 10 images allowed</p>
                 )}
-                {(imagePreviews.length > 0 || (editingPlace && editingPlace.images && editingPlace.images.length > 0)) && (
+                {(imagePreviews.length > 0 || (editingPlace && editingPlace.imageUrls && editingPlace.imageUrls.length > 0)) && (
                   <div className="mt-3 flex flex-wrap gap-3">
                     {imagePreviews.map((preview, index) => (
                       <div key={`preview-${index}`} className="relative">
@@ -383,8 +377,8 @@ export default function PlacesAdmin() {
                         </button>
                       </div>
                     ))}
-                    {editingPlace && editingPlace.images && editingPlace.images.length > 0 && imageFiles.length === 0 && (
-                      editingPlace.images.map((img, index) => (
+                    {editingPlace && editingPlace.imageUrls && editingPlace.imageUrls.length > 0 && imageFiles.length === 0 && (
+                      editingPlace.imageUrls.map((img, index) => (
                         <div key={`existing-${index}`} className="relative">
                           <img
                             src={img}

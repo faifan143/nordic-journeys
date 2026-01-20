@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { citiesApi, placesApi, hotelsApi, tripsApi } from '@/lib/api';
 import { City, Place, Hotel, Trip } from '@/types';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
+import { SafeImage } from '@/components/ui/safe-image';
 
 export default function CityDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -54,9 +55,10 @@ export default function CityDetailPage() {
             {/* City Header */}
             <div className="mb-16">
               <div className="aspect-[21/9] rounded-3xl overflow-hidden mb-8 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
-                <img
-                  src={city?.imageUrl || `https://picsum.photos/seed/${id}/1920/820`}
-                  alt={city?.name}
+                <SafeImage
+                  src={city?.imageUrl}
+                  fallbackSrc={`https://picsum.photos/seed/${id}/1920/820`}
+                  alt={city?.name || 'City'}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -70,30 +72,31 @@ export default function CityDetailPage() {
             <div className="mb-16">
               <h2 className="mb-8">Places in {city?.name}</h2>
               {placesLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="premium-card h-80 animate-pulse bg-muted" />
+                    <div key={i} className="premium-card h-56 animate-pulse bg-muted" />
                   ))}
                 </div>
               ) : places && places.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {places.map((place) => (
                     <Link
                       key={place.id}
                       to={`/places/${place.id}`}
                       className="premium-card hover-lift group overflow-hidden"
                     >
-                      <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
-                        <img
-                          src={place.images?.[0] || `https://picsum.photos/seed/${place.id}/800/600`}
+                      <div className="aspect-[16/9] rounded-xl overflow-hidden mb-3">
+                        <SafeImage
+                          src={place.imageUrls?.[0]}
+                          fallbackSrc={`https://picsum.photos/seed/${place.id}/800/600`}
                           alt={place.name}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       </div>
-                      <h3 className="text-2xl mb-3 group-hover:text-primary transition-colors">
+                      <h3 className="text-lg mb-1.5 group-hover:text-primary transition-colors">
                         {place.name}
                       </h3>
-                      <p className="text-muted-foreground line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {place.description}
                       </p>
                     </Link>
@@ -111,37 +114,38 @@ export default function CityDetailPage() {
                 <h2 className="mb-0">Hotels in {city?.name}</h2>
               </div>
               {hotelsLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="premium-card h-80 animate-pulse bg-muted" />
+                    <div key={i} className="premium-card h-56 animate-pulse bg-muted" />
                   ))}
                 </div>
               ) : hotels && hotels.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {hotels.map((hotel) => (
                     <Link
                       key={hotel.id}
                       to={`/hotels/${hotel.id}`}
                       className="premium-card hover-lift group overflow-hidden"
                     >
-                      <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
-                        <img
-                          src={hotel.imageUrl || `https://picsum.photos/seed/${hotel.id}/800/600`}
+                      <div className="aspect-[16/9] rounded-xl overflow-hidden mb-3">
+                        <SafeImage
+                          src={hotel.imageUrl}
+                          fallbackSrc={`https://picsum.photos/seed/${hotel.id}/800/600`}
                           alt={hotel.name}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       </div>
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-2xl group-hover:text-primary transition-colors flex-1">
+                      <div className="flex items-start justify-between mb-1.5">
+                        <h3 className="text-lg group-hover:text-primary transition-colors flex-1">
                           {hotel.name}
                         </h3>
                         {hotel.pricePerNight > 0 && (
-                          <span className="text-lg font-semibold text-primary ml-4">
+                          <span className="text-sm font-semibold text-primary ml-3">
                             ${hotel.pricePerNight}/night
                           </span>
                         )}
                       </div>
-                      <p className="text-muted-foreground line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {hotel.description}
                       </p>
                     </Link>
@@ -159,37 +163,38 @@ export default function CityDetailPage() {
                 <h2 className="mb-0">Trips in {city?.name}</h2>
               </div>
               {tripsLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="premium-card h-80 animate-pulse bg-muted" />
+                    <div key={i} className="premium-card h-56 animate-pulse bg-muted" />
                   ))}
                 </div>
               ) : trips && trips.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {trips.map((trip) => (
                     <Link
                       key={trip.id}
                       to={`/trips/${trip.id}`}
                       className="premium-card hover-lift group overflow-hidden"
                     >
-                      <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
-                        <img
-                          src={trip.imageUrl || `https://picsum.photos/seed/${trip.id}/800/600`}
+                      <div className="aspect-[16/9] rounded-xl overflow-hidden mb-3">
+                        <SafeImage
+                          src={trip.imageUrl}
+                          fallbackSrc={`https://picsum.photos/seed/${trip.id}/800/600`}
                           alt={trip.name}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       </div>
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-2xl group-hover:text-primary transition-colors flex-1">
+                      <div className="flex items-start justify-between mb-1.5">
+                        <h3 className="text-lg group-hover:text-primary transition-colors flex-1">
                           {trip.name}
                         </h3>
                         {trip.price > 0 && (
-                          <span className="text-xl font-bold text-primary ml-4">
+                          <span className="text-base font-bold text-primary ml-3">
                             ${trip.price}
                           </span>
                         )}
                       </div>
-                      <p className="text-muted-foreground line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {trip.description}
                       </p>
                     </Link>

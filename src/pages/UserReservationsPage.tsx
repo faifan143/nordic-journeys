@@ -105,7 +105,10 @@ function UserReservationsContent() {
                         </Badge>
                       </div>
                       <p className="text-muted-foreground mb-2">
-                        {reservation.roomType.name}
+                        {reservation.roomType?.name || 'Room Type'}
+                        {reservation.room && (
+                          <> - Room {reservation.room.roomNumber || reservation.room.id.slice(-6)}</>
+                        )}
                       </p>
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
