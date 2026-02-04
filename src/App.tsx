@@ -32,6 +32,7 @@ import UploadsAdmin from './pages/admin/UploadsAdmin';
 import ReservationsAdmin from './pages/admin/ReservationsAdmin';
 import HotelsAdmin from './pages/admin/HotelsAdmin';
 import TripsAdmin from './pages/admin/TripsAdmin';
+import SubAdminsAdmin from './pages/admin/SubAdminsAdmin';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
@@ -156,6 +157,14 @@ const App = () => {
               element={
                 <ProtectedRoute requireAdmin>
                   <TripsAdmin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/subadmins"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <SubAdminsAdmin />
                 </ProtectedRoute>
               }
             />

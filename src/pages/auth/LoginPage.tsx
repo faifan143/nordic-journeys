@@ -42,7 +42,7 @@ export default function LoginPage() {
       }
       setAuth(response.user, token);
       toast.success('Login successful!');
-      navigate(response.user.role === 'ADMIN' ? '/admin' : '/');
+      navigate(response.user.role === 'ADMIN' || response.user.role === 'SUB_ADMIN' ? '/admin' : '/');
     } catch (error: any) {
       toast.error(error.response?.data?.message || error.message || 'Login failed');
     } finally {

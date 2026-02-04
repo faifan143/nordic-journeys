@@ -7,6 +7,8 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isSubAdmin: boolean;
+  isAdminOrSubAdmin: boolean;
   isLoading: boolean;
   setAuth: (user: User, token: string) => void;
   logout: () => void;
@@ -19,6 +21,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   isAuthenticated: false,
   isAdmin: false,
+  isSubAdmin: false,
+  isAdminOrSubAdmin: false,
   isLoading: true,
 
   setAuth: (user, token) => {
@@ -29,6 +33,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       token,
       isAuthenticated: true,
       isAdmin: user.role === 'ADMIN',
+      isSubAdmin: user.role === 'SUB_ADMIN',
+      isAdminOrSubAdmin: user.role === 'ADMIN' || user.role === 'SUB_ADMIN',
       isLoading: false,
     });
   },
@@ -41,6 +47,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       token: null,
       isAuthenticated: false,
       isAdmin: false,
+      isSubAdmin: false,
+      isAdminOrSubAdmin: false,
       isLoading: false,
     });
   },
@@ -60,6 +68,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token,
         isAuthenticated: true,
         isAdmin: user.role === 'ADMIN',
+        isSubAdmin: user.role === 'SUB_ADMIN',
+        isAdminOrSubAdmin: user.role === 'ADMIN' || user.role === 'SUB_ADMIN',
         isLoading: false,
       });
       // Update localStorage with fresh user data
@@ -73,6 +83,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token: null,
         isAuthenticated: false,
         isAdmin: false,
+        isSubAdmin: false,
+        isAdminOrSubAdmin: false,
         isLoading: false,
       });
     }
@@ -87,6 +99,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         user,
         isAdmin: user.role === 'ADMIN',
+        isSubAdmin: user.role === 'SUB_ADMIN',
+        isAdminOrSubAdmin: user.role === 'ADMIN' || user.role === 'SUB_ADMIN',
       });
       localStorage.setItem('user', JSON.stringify(user));
     } catch (error) {

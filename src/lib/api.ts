@@ -58,7 +58,7 @@ export const authApi = {
     const response = await api.get('/auth/me');
     return response.data;
   },
-  register: async (email: string, password: string, role?: 'ADMIN' | 'USER') => {
+  register: async (email: string, password: string, role?: 'ADMIN' | 'SUB_ADMIN' | 'USER') => {
     const response = await api.post('/auth/register', { email, password, role });
     const data = response.data;
     if (data.accessToken) {
@@ -66,6 +66,38 @@ export const authApi = {
     }
     return data;
   },
+};
+
+// USERS (Sub-Admin Management)
+export const usersApi = {
+  // Note: These endpoints may not exist yet on the backend
+  // They are prepared for when the backend team implements them
+  getAll: async (role?: 'ADMIN' | 'SUB_ADMIN' | 'USER') => {
+    const params = role ? { role } : {};
+    const response = await api.get('/users', { params });
+    return response.data;
+  },
+  getSubAdmins: async () => {
+    const response = await api.get('/users/sub-admins');
+    return response.data;
+  },
+  getOne: async (id: string) => {
+    const response = await api.get(`/users/${id}`);
+    return response.data;
+  },
+  update: async (id: string, data: { email?: string; role?: 'ADMIN' | 'SUB_ADMIN' | 'USER' }) => {
+    const response = await api.patch(`/users/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: string) => {
+    const response = await api.delete(`/users/${id}`);
+    return response.data;
+  },
+  updateRole: async (id: string, role: 'ADMIN' | 'SUB_ADMIN' | 'USER') => {
+    const response = await api.patch(`/users/${id}/role`, { role });
+    return response.data;
+  },
+  // Use authApi.register for creating sub-admins (already implemented)
 };
 
 // STORAGE

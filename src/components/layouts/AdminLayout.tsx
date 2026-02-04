@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { MapPin, Home, Globe, Building2, MapPinned, Tag, Palette, Zap, LogOut, Calendar, Bed, Plane, Menu } from 'lucide-react';
+import { MapPin, Home, Globe, Building2, MapPinned, Tag, Palette, Zap, LogOut, Calendar, Bed, Plane, Menu, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,7 @@ interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
-const navItems = [
+const baseNavItems = [
   { icon: Home, label: 'Dashboard', path: '/admin' },
   { icon: Globe, label: 'Countries', path: '/admin/countries' },
   { icon: Building2, label: 'Cities', path: '/admin/cities' },
@@ -27,9 +27,18 @@ const navItems = [
   { icon: Calendar, label: 'Reservations', path: '/admin/reservations' },
 ];
 
+const adminOnlyNavItems = [
+  { icon: Users, label: 'Subadmins', path: '/admin/subadmins' },
+];
+
 const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
   const location = useLocation();
-  const { logout, user } = useAuthStore();
+  const { logout, user, isAdmin } = useAuthStore();
+  
+  // Combine base nav items with admin-only items if user is admin
+  const navItems = isAdmin 
+    ? [...baseNavItems, ...adminOnlyNavItems]
+    : baseNavItems;
 
   return (
     <>

@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
-  const { isAuthenticated, isAdmin, isLoading } = useAuthStore();
+  const { isAuthenticated, isAdminOrSubAdmin, isAdmin, isLoading } = useAuthStore();
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -27,7 +27,8 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
     return <Navigate to="/auth/login" replace />;
   }
 
-  if (requireAdmin && !isAdmin) {
+  // requireAdmin means ADMIN or SUB_ADMIN can access
+  if (requireAdmin && !isAdminOrSubAdmin) {
     return <Navigate to="/" replace />;
   }
 
